@@ -71,7 +71,6 @@ function! ZF_Toc()
     if empty(setting)
         return
     endif
-    let tagL = get(a:, 1, g:ZFVimExpand_tagL)
     let l:cur_line = line(".")
     let l:toc_line = 0
 
