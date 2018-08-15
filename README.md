@@ -20,11 +20,11 @@ vim script to quick view TOC (Table Of Contents) for any filetype
 recommended keymap:
 
 ```
-autocmd FileType YourFileType nnoremap <buffer> <leader>vt :call ZF_Toc()<cr>
-autocmd FileType YourFileType nnoremap <buffer> [[ :call ZF_TocPrev('n')<cr>
-autocmd FileType YourFileType xnoremap <buffer> [[ :call ZF_TocPrev('v')<cr>
-autocmd FileType YourFileType nnoremap <buffer> ]] :call ZF_TocNext('n')<cr>
-autocmd FileType YourFileType xnoremap <buffer> ]] :call ZF_TocNext('v')<cr>
+autocmd FileType YourFileType nnoremap <silent> <buffer> <leader>vt :call ZF_Toc()<cr>
+autocmd FileType YourFileType nnoremap <silent> <buffer> [[ :call ZF_TocPrev('n')<cr>
+autocmd FileType YourFileType xnoremap <silent> <buffer> [[ :call ZF_TocPrev('v')<cr>
+autocmd FileType YourFileType nnoremap <silent> <buffer> ]] :call ZF_TocNext('n')<cr>
+autocmd FileType YourFileType xnoremap <silent> <buffer> ]] :call ZF_TocNext('v')<cr>
 ```
 
 by default, the above keymaps would be applied to `markdown` files,

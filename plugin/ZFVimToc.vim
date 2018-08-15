@@ -33,11 +33,11 @@ if !exists('g:ZFVimToc_autoKeymap')
 endif
 
 function! ZF_VimToc_makeKeymap()
-    nnoremap <buffer> [[ :call ZF_TocPrev('n')<cr>
-    xnoremap <buffer> [[ :<c-u>call ZF_TocPrev('v')<cr>
-    nnoremap <buffer> ]] :call ZF_TocNext('n')<cr>
-    xnoremap <buffer> ]] :<c-u>call ZF_TocNext('v')<cr>
-    nnoremap <buffer> <leader>vt :call ZF_Toc()<cr>
+    nnoremap <silent> <buffer> [[ :call ZF_TocPrev('n')<cr>
+    xnoremap <silent> <buffer> [[ :<c-u>call ZF_TocPrev('v')<cr>
+    nnoremap <silent> <buffer> ]] :call ZF_TocNext('n')<cr>
+    xnoremap <silent> <buffer> ]] :<c-u>call ZF_TocNext('v')<cr>
+    nnoremap <silent> <buffer> <leader>vt :call ZF_Toc()<cr>
 endfunction
 for ft in g:ZFVimToc_autoKeymap
     let cmd = ''
