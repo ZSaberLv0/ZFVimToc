@@ -34,9 +34,9 @@ endif
 
 function! ZF_VimToc_makeKeymap()
     nnoremap <buffer> [[ :call ZF_TocPrev('n')<cr>
-    xnoremap <buffer> [[ :call ZF_TocPrev('v')<cr>
+    xnoremap <buffer> [[ :<c-u>call ZF_TocPrev('v')<cr>
     nnoremap <buffer> ]] :call ZF_TocNext('n')<cr>
-    xnoremap <buffer> ]] :call ZF_TocNext('v')<cr>
+    xnoremap <buffer> ]] :<c-u>call ZF_TocNext('v')<cr>
     nnoremap <buffer> <leader>vt :call ZF_Toc()<cr>
 endfunction
 for ft in g:ZFVimToc_autoKeymap
@@ -161,15 +161,18 @@ function! ZF_TocPrev(mode)
     if empty(setting)
         return
     endif
-    let cur_line = getpos(".")[1]
+    normal! m`
+    if a:mode=='v'
+        execute "normal! gv\<esc>"
+    endif
     let has_content=0
     let code_block_flag=0
     let titleRegExp=ZFE2v(setting.titleRegExp)
     let codeBlockBegin=ZFE2v(setting.codeBlockBegin)
     let codeBlockEnd=ZFE2v(setting.codeBlockEnd)
-    for i in range(cur_line)
-        normal! k
-        let line = getline(".")
+    let s:target = 1
+    for i in range(getpos('.')[1] - 1, 1, -1)
+        let line = getline(i)
         if len(codeBlockBegin) > 0
             if match(line, codeBlockEnd) > -1
                 if code_block_flag > 0 && match(line, codeBlockBegin) > -1
@@ -188,31 +191,37 @@ function! ZF_TocPrev(mode)
             if has_content==0
                 continue
             else
+                let s:target = i
                 break
             endif
         elseif match(line, '[^ \t]') > -1
             let has_content=1
         endif
     endfor
+    let curPos = getcurpos()
+    let curPos[1] = s:target
+    call setpos('.', curPos)
     if a:mode=='v'
         normal! m>gv
     endif
-    redraw!
 endfunction
 function! ZF_TocNext(mode)
     let setting = s:getSetting()
     if empty(setting)
         return
     endif
-    let cur_line = getpos(".")[1]
+    normal! m`
+    if a:mode=='v'
+        execute "normal! gv\<esc>"
+    endif
     let has_content=0
     let code_block_flag=0
     let titleRegExp=ZFE2v(setting.titleRegExp)
     let codeBlockBegin=ZFE2v(setting.codeBlockBegin)
     let codeBlockEnd=ZFE2v(setting.codeBlockEnd)
-    for i in range(cur_line, line("$"))
-        normal! j
-        let line = getline(".")
+    let s:target = line("$")
+    for i in range(getpos(".")[1] + 1, line("$"))
+        let line = getline(i)
         if len(codeBlockBegin) > 0
             if match(line, codeBlockBegin) > -1
                 if code_block_flag > 0 && match(line, codeBlockEnd) > -1
@@ -231,15 +240,18 @@ function! ZF_TocNext(mode)
             if has_content==0
                 continue
             else
+                let s:target = i
                 break
             endif
         elseif match(line, '[^ \t]') > -1
             let has_content=1
         endif
     endfor
+    let curPos = getcurpos()
+    let curPos[1] = s:target
+    call setpos('.', curPos)
     if a:mode=='v'
         normal! m>gv
     endif
-    redraw!
 endfunction
 
