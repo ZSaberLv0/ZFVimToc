@@ -15,7 +15,7 @@ function! ZF_TocPatternMake(ft, titleToken, codeBlockBegin, codeBlockEnd)
         let g:ZFVimToc_setting={}
     endi
     let g:ZFVimToc_setting[a:ft] = {
-                \     'titleRegExp' : '^[ \t]*' . a:titleToken . '+.*$',
+                \     'titleRegExp' : '^[ \t]*' . a:titleToken . '+ .*$',
                 \     'titleLevelRegExpMatch' : '^[ \t]*(' . a:titleToken . '+).*$',
                 \     'titleLevelRegExpReplace' : '\1',
                 \     'titleNameRegExpMatch' : '^[ \t]*' . a:titleToken . '+[ \t]*(<.*?>)?[ \t]*(.*?)[ \t]*(<.*?>)?[ \t]*$',
