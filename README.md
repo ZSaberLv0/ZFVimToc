@@ -12,7 +12,11 @@ vim script to quick view TOC (Table Of Contents) for any filetype
     Plugin 'ZSaberLv0/ZFVimToc'
     ```
 
-1. use `:call ZF_Toc()` or `:ZFToc` to view a TOC
+1. use `<leader>vt` or `:ZFToc` to view a TOC
+
+    * for configured `filetype` (see `g:ZFVimToc_setting`),
+        TOC should show directly
+    * for other `filetype`, you would be asked to enter regexp to search for titles
 
 
 # keymaps
@@ -31,7 +35,10 @@ by default, the above keymaps would be applied to `markdown` files,
 you may disable or change by:
 
 ```
-let g:ZFVimToc_autoKeymap = ['markdown']
+if !exists('g:ZFVimToc_autoKeymap')
+    let g:ZFVimToc_autoKeymap={}
+endif
+let g:ZFVimToc_autoKeymap['markdown']=1
 ```
 
 
