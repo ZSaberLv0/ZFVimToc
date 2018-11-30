@@ -272,7 +272,7 @@ function! ZF_TocPrev(mode)
             let has_content=1
         endif
     endfor
-    let curPos = getcurpos()
+    let curPos = getpos('.')
     let curPos[1] = s:target
     call setpos('.', curPos)
     if a:mode=='v'
@@ -321,7 +321,7 @@ function! ZF_TocNext(mode)
             let has_content=1
         endif
     endfor
-    let curPos = getcurpos()
+    let curPos = getpos('.')
     let curPos[1] = s:target
     call setpos('.', curPos)
     if a:mode=='v'
