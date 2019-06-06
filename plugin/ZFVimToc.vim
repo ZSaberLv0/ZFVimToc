@@ -187,7 +187,9 @@ let g:ZF_VimToc_patternLast=''
 function! s:ZFTocFallback(...)
     let pattern = get(a:, 1)
     if empty(pattern)
+        call inputsave()
         let pattern = input('[ZFVimToc] title pattern: ', g:ZF_VimToc_patternLast)
+        call inputrestore()
     endif
     let g:ZF_VimToc_patternLast = pattern
     if empty(pattern)
