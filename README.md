@@ -90,11 +90,11 @@ you may have these settings in your vimrc to make it more convenient:
 augroup ZFVimToc_setting
     autocmd!
     autocmd BufWinEnter quickfix
-                \ nnoremap <buffer> <silent> q :bd<cr>|
-                \ nnoremap <buffer> <silent> <leader>vt :bd<cr>|
-                \ nnoremap <buffer> <silent> <cr> <cr>:lclose<cr>|
-                \ nnoremap <buffer> <silent> o <cr>:lclose<cr>|
-                \ setlocal foldmethod=indent
+                \  nnoremap <buffer> <silent> q :bd<cr>
+                \| nnoremap <buffer> <silent> <leader>vt :bd<cr>
+                \| nnoremap <buffer> <silent> <cr> <cr>:lclose<cr>
+                \| nnoremap <buffer> <silent> o <cr>:lclose<cr>
+                \| setlocal foldmethod=indent
 augroup END
 ```
 
