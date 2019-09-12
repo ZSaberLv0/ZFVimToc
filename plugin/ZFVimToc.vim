@@ -183,10 +183,11 @@ function! ZF_Toc(...)
 endfunction
 command! -nargs=* ZFToc :call ZF_Toc(<q-args>)
 
+let g:ZF_VimToc_patternNoMatch=0
 let g:ZF_VimToc_patternLast=''
 function! s:ZFTocFallback(...)
     let pattern = get(a:, 1)
-    if empty(pattern)
+    if empty(pattern) || g:ZF_VimToc_patternNoMatch
         call inputsave()
         let pattern = input('[ZFVimToc] title pattern: ', g:ZF_VimToc_patternLast)
         call inputrestore()
@@ -197,10 +198,12 @@ function! s:ZFTocFallback(...)
         echo '[ZFVimToc] no input, canceled'
         return
     endif
+    let g:ZF_VimToc_patternNoMatch=0
 
     try
         execute 'silent lvimgrep /' . ZFE2v(pattern) . '/j %'
     catch /E480/
+        let g:ZF_VimToc_patternNoMatch=1
         echom "[ZFVimToc] no titles."
         return
     endtry
