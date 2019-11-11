@@ -36,7 +36,11 @@ function! ZF_VimTocGeneric(autoStart)
     endif
 
     if empty(s:getSetting())
-        call feedkeys(":ZFToc \<c-r>=g:ZF_VimToc_patternLast\<cr>" . (a:autoStart ? "\<cr>" : ''), 't')
+        if g:ZF_VimToc_patternNoMatch
+            call feedkeys(':ZFToc' . (a:autoStart ? "\<cr>" : ' '), 't')
+        else
+            call feedkeys(":ZFToc \<c-r>=g:ZF_VimToc_patternLast\<cr>" . (a:autoStart ? "\<cr>" : ''), 't')
+        endif
     else
         call feedkeys(":ZFToc\<cr>", 't')
     endif
@@ -187,10 +191,14 @@ let g:ZF_VimToc_patternNoMatch=0
 let g:ZF_VimToc_patternLast=''
 function! s:ZFTocFallback(...)
     let pattern = get(a:, 1)
-    if empty(pattern) || g:ZF_VimToc_patternNoMatch
-        call inputsave()
-        let pattern = input('[ZFVimToc] title pattern: ', g:ZF_VimToc_patternLast)
-        call inputrestore()
+    if empty(pattern)
+        if g:ZF_VimToc_patternNoMatch || empty(g:ZF_VimToc_patternLast)
+            call inputsave()
+            let pattern = input('[ZFVimToc] title pattern: ', g:ZF_VimToc_patternLast)
+            call inputrestore()
+        else
+            let pattern = g:ZF_VimToc_patternLast
+        endif
     endif
     let g:ZF_VimToc_patternLast = pattern
     if empty(pattern)
