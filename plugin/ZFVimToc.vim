@@ -36,10 +36,10 @@ function! ZF_VimTocGeneric(autoStart)
     endif
 
     if empty(s:getSetting())
-        if g:ZF_VimToc_patternNoMatch
+        if g:ZF_VimToc_patternNoMatch || !a:autoStart
             call feedkeys(':ZFToc' . (a:autoStart ? "\<cr>" : ' '), 't')
         else
-            call feedkeys(":ZFToc \<c-r>=g:ZF_VimToc_patternLast\<cr>" . (a:autoStart ? "\<cr>" : ''), 't')
+            call feedkeys(":ZFToc \<c-r>=g:ZF_VimToc_patternLast\<cr>\<cr>", 't')
         endif
     else
         call feedkeys(":ZFToc\<cr>", 't')

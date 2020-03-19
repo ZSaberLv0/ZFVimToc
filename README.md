@@ -10,7 +10,7 @@ if you like my work, [check here](https://github.com/ZSaberLv0?utf8=%E2%9C%93&ta
 1. use [Vundle](https://github.com/VundleVim/Vundle.vim) or any other plugin manager you like to install
 
     ```
-    Plug 'othree/eregex.vim'
+    Plugin 'othree/eregex.vim'
     Plugin 'ZSaberLv0/ZFVimToc'
     ```
 
