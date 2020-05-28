@@ -154,6 +154,11 @@ function! ZF_Toc(...)
         call setloclist(0, loclist)
     endif
 
+    if empty(getloclist(0))
+        echom "[ZFVimToc] no titles."
+        return
+    endif
+
     lopen 25
     setlocal modifiable
     if line('$') > 0
