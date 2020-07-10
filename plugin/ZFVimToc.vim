@@ -1,13 +1,9 @@
-" ZFVimToc - vim script to quick view TOC (Table Of Contents) for any filetype
-" Author:  ZSaberLv0 <http://zsaber.com/>
 
 if exists('*E2v')
     function! ZFE2v(pattern)
         return E2v(a:pattern)
     endfunction
 endif
-
-let g:ZFVimToc_loaded=1
 
 " ============================================================
 function! ZF_TocPatternMake(ft, titleToken, codeBlockBegin, codeBlockEnd)
@@ -36,10 +32,10 @@ function! ZF_VimTocGeneric(autoStart)
     endif
 
     if empty(s:getSetting())
-        if g:ZF_VimToc_patternNoMatch || !a:autoStart
+        if get(b:, 'ZF_VimToc_patternNoMatch', 0) || !a:autoStart
             call feedkeys(':ZFToc' . (a:autoStart ? "\<cr>" : ' '), 't')
         else
-            call feedkeys(":ZFToc \<c-r>=g:ZF_VimToc_patternLast\<cr>\<cr>", 't')
+            call feedkeys(":ZFToc \<c-r>=get(b:, 'ZF_VimToc_patternLast', '')\<cr>\<cr>", 't')
         endif
     else
         call feedkeys(":ZFToc\<cr>", 't')
@@ -115,19 +111,21 @@ function! ZF_Toc(...)
         endif
         execute 'silent lvimgrep /' . ZFE2v(t) . '/j %'
     catch /E480/
+        redraw!
         echom "[ZFVimToc] no titles."
+        return
+    catch
+        echom v:exception
         return
     endtry
 
     let loclist = getloclist(0)
-    let i = 1
-    let range = len(loclist)
-    let l:cur_line = line(".")
-    let l:toc_line = 0
     if len(setting.codeBlockBegin) > 0
         let code_block_flag = 0
         let codeBlockBegin=ZFE2v(setting.codeBlockBegin)
         let codeBlockEnd=ZFE2v(setting.codeBlockEnd)
+        let i = 1
+        let range = len(loclist)
         while i <= range
             let d = loclist[i-1]
             if match(d.text, codeBlockBegin) > -1
@@ -136,116 +134,122 @@ function! ZF_Toc(...)
                 else
                     let code_block_flag+=1
                 endif
-                call remove(loclist, i - 1)
-                let i = i - 1
+                let i -= 1
+                call remove(loclist, i)
                 let range = range - 1
             elseif match(d.text, codeBlockEnd) > -1
                 let code_block_flag-=1
-                call remove(loclist, i - 1)
-                let i = i - 1
+                let i -= 1
+                call remove(loclist, i)
                 let range = range - 1
             elseif code_block_flag > 0
-                call remove(loclist, i - 1)
-                let i = i - 1
+                let i -= 1
+                call remove(loclist, i)
                 let range = range - 1
             endif
-            let i = i + 1
+            let i += 1
         endwhile
         call setloclist(0, loclist)
     endif
 
-    if empty(getloclist(0))
+    if empty(loclist)
+        redraw!
         echom "[ZFVimToc] no titles."
         return
     endif
 
+    let cur_line = line(".")
+    let toc_line = 0
     lopen 25
     setlocal modifiable
-    if line('$') > 0
-        let titleLevelRegExpMatch=ZFE2v(setting.titleLevelRegExpMatch)
-        let titleLevelRegExpReplace=ZFE2v(setting.titleLevelRegExpReplace)
-        let titleNameRegExpMatch=ZFE2v(setting.titleNameRegExpMatch)
-        let titleNameRegExpReplace=ZFE2v(setting.titleNameRegExpReplace)
-        for i in range(1, line('$'))
-            let d = getloclist(0)[i-1]
-            if l:toc_line == 0
-                if d.lnum == l:cur_line
-                    let l:toc_line = i
-                elseif d.lnum > l:cur_line
-                    let l:toc_line = i - 1
-                endif
+    let titleLevelRegExpMatch=ZFE2v(setting.titleLevelRegExpMatch)
+    let titleLevelRegExpReplace=ZFE2v(setting.titleLevelRegExpReplace)
+    let titleNameRegExpMatch=ZFE2v(setting.titleNameRegExpMatch)
+    let titleNameRegExpReplace=ZFE2v(setting.titleNameRegExpReplace)
+    for i in range(len(loclist))
+        let d = loclist[i]
+        if toc_line == 0
+            if d.lnum == cur_line
+                let toc_line = i + 1
+            elseif d.lnum > cur_line
+                let toc_line = i
             endif
-
-            let l:level = len(substitute(d.text, titleLevelRegExpMatch, titleLevelRegExpReplace, ''))
-            if l:level > 0
-                let l:level -= 1
-            endif
-            if len(titleNameRegExpMatch) > 0
-                let d.text = substitute(d.text, titleNameRegExpMatch, titleNameRegExpReplace, '')
-            endif
-            call setline(i, repeat('    ', l:level). d.text)
-        endfor
-    endif
+        endif
+        let level = len(substitute(d.text, titleLevelRegExpMatch, titleLevelRegExpReplace, ''))
+        if level > 0
+            let level -= 1
+        endif
+        if len(titleNameRegExpMatch) > 0
+            let d.text = substitute(d.text, titleNameRegExpMatch, titleNameRegExpReplace, '')
+        endif
+        call setline(i + 1, repeat('    ', level). d.text)
+    endfor
     setlocal nomodified
     setlocal nomodifiable
-    call cursor(l:toc_line, 0)
+    call cursor(toc_line, 0)
 endfunction
 command! -nargs=* ZFToc :call ZF_Toc(<q-args>)
 
-let g:ZF_VimToc_patternNoMatch=0
-let g:ZF_VimToc_patternLast=''
 function! s:ZFTocFallback(...)
     let pattern = get(a:, 1)
     if empty(pattern)
-        if g:ZF_VimToc_patternNoMatch || empty(g:ZF_VimToc_patternLast)
+        if get(b:, 'ZF_VimToc_patternNoMatch', 0) || empty(get(b:, 'ZF_VimToc_patternLast', ''))
             call inputsave()
-            let pattern = input('[ZFVimToc] title pattern: ', g:ZF_VimToc_patternLast)
+            let pattern = input('[ZFVimToc] title pattern: ', get(b:, 'ZF_VimToc_patternLast', ''))
             call inputrestore()
         else
-            let pattern = g:ZF_VimToc_patternLast
+            let pattern = get(b:, 'ZF_VimToc_patternLast', '')
         endif
     endif
-    let g:ZF_VimToc_patternLast = pattern
+    let b:ZF_VimToc_patternLast = pattern
     if empty(pattern)
         redraw!
         echo '[ZFVimToc] no input, canceled'
         return
     endif
-    let g:ZF_VimToc_patternNoMatch=0
+    if exists('b:ZF_VimToc_patternNoMatch')
+        unlet b:ZF_VimToc_patternNoMatch
+    endif
 
     try
         execute 'silent lvimgrep /' . ZFE2v(pattern) . '/j %'
     catch /E480/
-        let g:ZF_VimToc_patternNoMatch=1
+        let b:ZF_VimToc_patternNoMatch = 1
+        redraw!
         echom "[ZFVimToc] no titles."
+        return
+    catch
+        echom v:exception
         return
     endtry
 
     let loclist = getloclist(0)
-    let i = 1
-    let range = len(loclist)
-    let l:cur_line = line(".")
-    let l:toc_line = 0
 
+    if empty(loclist)
+        redraw!
+        echom "[ZFVimToc] no titles."
+        return
+    endif
+
+    let cur_line = line(".")
+    let toc_line = 0
     lopen 25
     setlocal modifiable
-    if line('$') > 0
-        for i in range(1, line('$'))
-            let d = getloclist(0)[i-1]
-            if l:toc_line == 0
-                if d.lnum == l:cur_line
-                    let l:toc_line = i
-                elseif d.lnum > l:cur_line
-                    let l:toc_line = i - 1
-                endif
+    for i in range(len(loclist))
+        let d = loclist[i]
+        if toc_line == 0
+            if d.lnum == cur_line
+                let toc_line = i + 1
+            elseif d.lnum > cur_line
+                let toc_line = i
             endif
-            let d.text = substitute(d.text, '^.\{-}|.\{-}| ', '', '')
-            call setline(i, d.text)
-        endfor
-    endif
+        endif
+        let d.text = substitute(d.text, '^.\{-}|.\{-}| ', '', '')
+        call setline(i + 1, d.text)
+    endfor
     setlocal nomodified
     setlocal nomodifiable
-    call cursor(l:toc_line, 0)
+    call cursor(toc_line, 0)
 endfunction
 
 function! ZF_TocPrev(mode)
