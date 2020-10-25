@@ -16,31 +16,23 @@ if you like my work, [check here](https://github.com/ZSaberLv0?utf8=%E2%9C%93&ta
 
 1. use `<leader>vt` or `:ZFToc` to view a TOC
 
-    * for configured `filetype` (see `g:ZFVimToc_setting`),
-        TOC should show directly
+    * for configured `filetype` (see `g:ZFToc_setting`), TOC should show directly
+        * to force use custom pattern, use `<leader>zt` or `:ZFToc YourPattern`,
+            enter an empty pattern to reset to default configured one
     * for other `filetype`, you would be asked to enter regexp to search for titles
+
+1. use `[[` or `]]` to jump to prev/next title
 
 
 # keymaps
 
-recommended keymap:
+the default keymap and the var to config:
 
 ```
-autocmd FileType YourFileType nnoremap <silent> <buffer> <leader>vt :call ZF_Toc()<cr>
-autocmd FileType YourFileType nnoremap <silent> <buffer> [[ :call ZF_TocPrev('n')<cr>
-autocmd FileType YourFileType xnoremap <silent> <buffer> [[ :call ZF_TocPrev('v')<cr>
-autocmd FileType YourFileType nnoremap <silent> <buffer> ]] :call ZF_TocNext('n')<cr>
-autocmd FileType YourFileType xnoremap <silent> <buffer> ]] :call ZF_TocNext('v')<cr>
-```
-
-by default, the above keymaps would be applied to `markdown` files,
-you may disable or change by:
-
-```
-if !exists('g:ZFVimToc_autoKeymap')
-    let g:ZFVimToc_autoKeymap={}
-endif
-let g:ZFVimToc_autoKeymap['markdown']=1
+let g:ZFTocKeymap_TOC='<leader>vt'
+let g:ZFTocKeymap_TOCCustom='<leader>zt'
+let g:ZFTocKeymap_prev='[['
+let g:ZFTocKeymap_next=']]'
 ```
 
 
@@ -50,7 +42,7 @@ by default, only `markdown` file are configured for TOC view,
 you may add config for your own filetype
 
 ```
-let g:ZFVimToc_setting['markdown'] = {
+let g:ZFToc_setting['markdown'] = {
             \     'titleRegExp' : '^[ \t]*[#]+.*$',
             \     'titleLevelRegExpMatch' : '^[ \t]*([#]+).*$',
             \     'titleLevelRegExpReplace' : '\1',
@@ -87,7 +79,7 @@ the TOC preview is a location list in fact (`:h :lopen`)
 you may have these settings in your vimrc to make it more convenient:
 
 ```
-augroup ZFVimToc_setting
+augroup ZFToc_setting_augroup
     autocmd!
     autocmd BufWinEnter quickfix
                 \  nnoremap <buffer> <silent> q :bd<cr>
