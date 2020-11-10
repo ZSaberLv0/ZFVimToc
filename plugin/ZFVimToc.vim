@@ -237,6 +237,12 @@ function! s:ZFTocFallback(...)
     let toc_line = 0
     lopen 25
     setlocal modifiable
+
+    let indentPattern = ZFE2v(pattern)
+    if match(indentPattern, '^\^') < 0
+        let indentPattern = '^[ \t]*' . indentPattern
+    endif
+
     for i in range(len(loclist))
         let d = loclist[i]
         if toc_line == 0
@@ -246,9 +252,22 @@ function! s:ZFTocFallback(...)
                 let toc_line = i
             endif
         endif
-        let d.text = substitute(d.text, '^.\{-}|.\{-}| ', '', '')
+
+        " fix indent
+        let indentLevel = 0
+        let t = d.text
+        while t != substitute(t, indentPattern, '', '')
+            let indentLevel += 1
+            let t = substitute(t, indentPattern, '', '')
+        endwhile
+        while indentLevel > 1
+            let d.text = '    ' . d.text
+            let indentLevel -= 1
+        endwhile
+
         call setline(i + 1, d.text)
     endfor
+
     setlocal nomodified
     setlocal nomodifiable
     call cursor(toc_line, 0)
