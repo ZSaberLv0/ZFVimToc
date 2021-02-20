@@ -11,8 +11,8 @@ or [buy me a coffee](https://github.com/ZSaberLv0/ZSaberLv0)
 1. use [Vundle](https://github.com/VundleVim/Vundle.vim) or any other plugin manager you like to install
 
     ```
-    Plugin 'othree/eregex.vim'
     Plugin 'ZSaberLv0/ZFVimToc'
+    Plugin 'othree/eregex.vim' " required
     ```
 
 1. use `<leader>vt` or `:ZFToc` to view a TOC
@@ -56,8 +56,8 @@ let g:ZFToc_setting['markdown'] = {
 
 patterns:
 
-* `titleRegExp` : regexp to match title
-* `titleLevelRegExpMatch` and `titleLevelRegExpReplace` : regexp to check title level,
+* `titleRegExp` : required, regexp to match title
+* `titleLevelRegExpMatch` and `titleLevelRegExpReplace` : optional, regexp to check title level,
     result should be any string, whose (length - 1) indicates the title's level
 * `titleNameRegExpMatch` and `titleNameRegExpReplace` : optional,
     regexp to convert title name to human readable one,

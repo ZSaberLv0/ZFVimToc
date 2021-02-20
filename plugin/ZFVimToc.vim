@@ -9,7 +9,7 @@ endif
 function! ZFTocPatternMake(ft, titleToken, codeBlockBegin, codeBlockEnd)
     if !exists('g:ZFToc_setting')
         let g:ZFToc_setting={}
-    endi
+    endif
     let g:ZFToc_setting[a:ft] = {
                 \     'titleRegExp' : '^[ \t]*' . a:titleToken . '+ .*$',
                 \     'titleLevelRegExpMatch' : '^[ \t]*(' . a:titleToken . '+).*$',
@@ -45,8 +45,10 @@ function! ZFTocMakeKeymap(...)
         execute 'xnoremap <silent> ' . bufferOnly . get(g:, 'ZFTocKeymap_next', ']]') . ' :<c-u>call ZFTocNext("v")<cr>'
     endif
 endfunction
-call ZFTocMakeKeymap(0)
 
+if get(g:, 'ZFTocMakeKeymapToGlobal', 1)
+    call ZFTocMakeKeymap(0)
+endif
 if get(g:, 'ZFTocMakeKeymapToLocal', 1)
     augroup ZFTocMakeKeymapToLocal_augroup
         autocmd!
@@ -56,62 +58,158 @@ endif
 
 
 " ============================================================
-function! s:getSetting()
-    if !exists('*ZFE2v')
-        echo 'ZFToc require othree/eregex.vim'
-        echo '    install it or supply custom wrapper function ZFE2v(pattern)'
-        return {}
+function! ZFTocGeneric(autoStart)
+    if empty(expand('%'))
+        redraw!
+        echo '[ZFToc] no file'
+        return ''
     endif
-    let setting = get(g:ZFToc_setting, &filetype, {})
-    if empty(setting) && &filetype != ''
-        let setting = get(g:ZFToc_setting, '', {})
+
+    " use feedkeys to bypass E523
+    " reason: functions inside expr map can not change buffer text
+    if get(b:, 'ZFTocFallback_noMatch', 0) || !a:autoStart
+        if exists('b:ZFTocFallback_noMatch')
+            let saved_noMatch = b:ZFTocFallback_noMatch
+            let saved_setting = b:ZFTocFallback_setting
+            unlet b:ZFTocFallback_noMatch
+            unlet b:ZFTocFallback_setting
+        endif
+        call feedkeys(':ZFToc' . (a:autoStart ? "\<cr>" : ' '), 't')
+
+        " restore in case user canceled
+        if empty(get(b:, 'ZFTocFallback_setting', {})) && exists('saved_noMatch')
+            let b:ZFTocFallback_noMatch = saved_noMatch
+            let b:ZFTocFallback_setting = saved_setting
+        endif
+    else
+        call feedkeys(":ZFToc\<cr>", 't')
     endif
-    return setting
+    return ''
 endfunction
 
 function! ZFToc(...)
     if empty(expand('%'))
         redraw!
         echo '[ZFToc] no file'
-        return
-    endif
-    let setting = s:getSetting()
-    let pattern = get(a:, 1)
-    if empty(setting) || !empty(pattern)
-        call s:ZFTocFallback(pattern)
-        return
+        return 0
     endif
 
-    if exists('b:ZFToc_patternNoMatch')
-        unlet b:ZFToc_patternNoMatch
+    let setting = s:getSetting()
+    let pattern = get(a:, 1, '')
+    if empty(setting) || !empty(pattern)
+        return s:ZFTocFallback(pattern)
+    else
+        return s:toc(setting)
     endif
-    if exists('b:ZFToc_patternLast')
-        unlet b:ZFToc_patternLast
+endfunction
+
+function! ZFTocPrev(mode)
+    let setting = s:getSetting()
+    if !empty(setting)
+        call s:tocPrev(setting, a:mode)
+    elseif s:prepareSetting() && s:toc(b:ZFTocFallback_setting, 0)
+        call s:tocPrev(b:ZFTocFallback_setting, a:mode)
     endif
+endfunction
+
+function! ZFTocNext(mode)
+    let setting = s:getSetting()
+    if !empty(setting)
+        call s:tocNext(setting, a:mode)
+    elseif s:prepareSetting() && s:toc(b:ZFTocFallback_setting, 0)
+        call s:tocNext(b:ZFTocFallback_setting, a:mode)
+    endif
+endfunction
+
+
+" ============================================================
+function! s:getSetting()
+    if !exists('*ZFE2v')
+        echo 'ZFToc require othree/eregex.vim'
+        echo '    install it or supply custom wrapper function ZFE2v(pattern)'
+        return {}
+    endif
+
+    let setting = get(b:, 'ZFTocFallback_setting', {})
+    if empty(setting)
+        let setting = get(g:ZFToc_setting, &filetype, {})
+        if empty(setting) && &filetype != ''
+            let setting = get(g:ZFToc_setting, '', {})
+        endif
+    endif
+
+    if empty(get(setting, 'titleRegExp', ''))
+        return {}
+    else
+        return setting
+    endif
+endfunction
+
+function! s:prepareSetting(...)
+    let pattern = get(a:, 1, '')
+    if empty(pattern)
+        if get(b:, 'ZFTocFallback_noMatch', 0) || empty(get(b:, 'ZFTocFallback_setting', {}))
+            call inputsave()
+            let pattern = input('[ZFToc] title pattern: ',
+                        \ get(get(b:, 'ZFTocFallback_setting', {}), 'titleRegExp', ''))
+            call inputrestore()
+        else
+            unlet pattern
+            let pattern = b:ZFTocFallback_setting
+        endif
+    endif
+    if empty(pattern)
+        redraw!
+        echo '[ZFToc] no input, canceled'
+        return 0
+    endif
+
+    if type(pattern) == type({})
+        let b:ZFTocFallback_setting = pattern
+    else
+        let b:ZFTocFallback_setting = {
+                    \   'titleRegExp' : pattern,
+                    \ }
+    endif
+    return 1
+endfunction
+
+" process files that ft not configured
+function! s:ZFTocFallback(...)
+    if !s:prepareSetting(get(a:, 1, ''))
+        return 0
+    endif
+    let b:ZFTocFallback_noMatch = s:toc(b:ZFTocFallback_setting)
+    return b:ZFTocFallback_noMatch
+endfunction
+
+function! s:toc(setting, ...)
+    let autoOpen = get(a:, 1, 1)
 
     try
-        if len(setting.codeBlockBegin) > 0
-            let t='(' . setting.titleRegExp . ')'
-            let t.='|(' . setting.codeBlockBegin . ')'
-            let t.='|(' . setting.codeBlockEnd . ')'
+        if len(get(a:setting, 'codeBlockBegin', '')) > 0
+                    \ && len(get(a:setting, 'codeBlockEnd', '')) > 0
+            let t = '(' . a:setting.titleRegExp . ')'
+            let t .= '|(' . a:setting.codeBlockBegin . ')'
+            let t .= '|(' . a:setting.codeBlockEnd . ')'
         else
-            let t=setting.titleRegExp
+            let t = a:setting.titleRegExp
         endif
         execute 'silent lvimgrep /' . ZFE2v(t) . '/j %'
     catch /E480/
         redraw!
         echom "[ZFToc] no titles."
-        return
+        return 0
     catch
         echom v:exception
-        return
+        return 0
     endtry
 
     let loclist = getloclist(0)
-    if len(setting.codeBlockBegin) > 0
+    if len(get(a:setting, 'codeBlockBegin', '')) > 0
         let code_block_flag = 0
-        let codeBlockBegin=ZFE2v(setting.codeBlockBegin)
-        let codeBlockEnd=ZFE2v(setting.codeBlockEnd)
+        let codeBlockBegin = ZFE2v(get(a:setting, 'codeBlockBegin', ''))
+        let codeBlockEnd = ZFE2v(get(a:setting, 'codeBlockEnd', ''))
         let i = 1
         let range = len(loclist)
         while i <= range
@@ -143,17 +241,20 @@ function! ZFToc(...)
     if empty(loclist)
         redraw!
         echom "[ZFToc] no titles."
-        return
+        return 0
+    endif
+    if !autoOpen
+        return 1
     endif
 
     let cur_line = line(".")
     let toc_line = 0
     lopen 25
     setlocal modifiable
-    let titleLevelRegExpMatch=ZFE2v(setting.titleLevelRegExpMatch)
-    let titleLevelRegExpReplace=ZFE2v(setting.titleLevelRegExpReplace)
-    let titleNameRegExpMatch=ZFE2v(setting.titleNameRegExpMatch)
-    let titleNameRegExpReplace=ZFE2v(setting.titleNameRegExpReplace)
+    let titleLevelRegExpMatch = ZFE2v(get(a:setting, 'titleLevelRegExpMatch', ''))
+    let titleLevelRegExpReplace = ZFE2v(get(a:setting, 'titleLevelRegExpReplace', ''))
+    let titleNameRegExpMatch = ZFE2v(get(a:setting, 'titleNameRegExpMatch', ''))
+    let titleNameRegExpReplace = ZFE2v(get(a:setting, 'titleNameRegExpReplace', ''))
     for i in range(len(loclist))
         let d = loclist[i]
         if toc_line == 0
@@ -163,9 +264,13 @@ function! ZFToc(...)
                 let toc_line = i
             endif
         endif
-        let level = len(substitute(d.text, titleLevelRegExpMatch, titleLevelRegExpReplace, ''))
-        if level > 0
-            let level -= 1
+        if len(titleLevelRegExpMatch) > 0
+            let level = len(substitute(d.text, titleLevelRegExpMatch, titleLevelRegExpReplace, ''))
+            if level > 0
+                let level -= 1
+            endif
+        else
+            let level = 0
         endif
         if len(titleNameRegExpMatch) > 0
             let d.text = substitute(d.text, titleNameRegExpMatch, titleNameRegExpReplace, '')
@@ -175,118 +280,15 @@ function! ZFToc(...)
     setlocal nomodified
     setlocal nomodifiable
     call cursor(toc_line, 0)
+
+    return 1
 endfunction
 
-function! ZFTocGeneric(autoStart)
-    if empty(expand('%'))
-        redraw!
-        echo '[ZFToc] no file'
-        return ''
-    endif
+function! s:tocPrev(setting, mode)
+    let titleRegExp = ZFE2v(a:setting.titleRegExp)
+    let codeBlockBegin = ZFE2v(get(a:setting, 'codeBlockBegin', ''))
+    let codeBlockEnd = ZFE2v(get(a:setting, 'codeBlockEnd', ''))
 
-    if get(b:, 'ZFToc_patternNoMatch', 0) || !a:autoStart
-        call feedkeys(':ZFToc' . (a:autoStart ? "\<cr>" : ' '), 't')
-    else
-        call feedkeys(":ZFToc \<c-r>=get(b:, 'ZFToc_patternLast', '')\<cr>\<cr>", 't')
-    endif
-    return ''
-endfunction
-
-function! s:ZFTocFallback(...)
-    let pattern = get(a:, 1)
-    if empty(pattern)
-        if get(b:, 'ZFToc_patternNoMatch', 0) || empty(get(b:, 'ZFToc_patternLast', ''))
-            call inputsave()
-            let pattern = input('[ZFToc] title pattern: ', get(b:, 'ZFToc_patternLast', ''))
-            call inputrestore()
-        else
-            let pattern = get(b:, 'ZFToc_patternLast', '')
-        endif
-    endif
-    let b:ZFToc_patternLast = pattern
-    if empty(pattern)
-        redraw!
-        echo '[ZFToc] no input, canceled'
-        return
-    endif
-    if exists('b:ZFToc_patternNoMatch')
-        unlet b:ZFToc_patternNoMatch
-    endif
-
-    try
-        execute 'silent lvimgrep /' . ZFE2v(pattern) . '/j %'
-    catch /E480/
-        let b:ZFToc_patternNoMatch = 1
-        redraw!
-        echom "[ZFToc] no titles."
-        return
-    catch
-        echom v:exception
-        return
-    endtry
-
-    let loclist = getloclist(0)
-
-    if empty(loclist)
-        redraw!
-        echom "[ZFToc] no titles."
-        return
-    endif
-
-    let cur_line = line(".")
-    let toc_line = 0
-    lopen 25
-    setlocal modifiable
-
-    let indentPattern = ZFE2v(pattern)
-    if match(indentPattern, '^\^') < 0
-        let indentPattern = '^[ \t]*' . indentPattern
-    endif
-
-    for i in range(len(loclist))
-        let d = loclist[i]
-        if toc_line == 0
-            if d.lnum == cur_line
-                let toc_line = i + 1
-            elseif d.lnum > cur_line
-                let toc_line = i
-            endif
-        endif
-
-        " fix indent
-        let indentLevel = 0
-        let t = d.text
-        while t != substitute(t, indentPattern, '', '')
-            let indentLevel += 1
-            let t = substitute(t, indentPattern, '', '')
-        endwhile
-        while indentLevel > 1
-            let d.text = '    ' . d.text
-            let indentLevel -= 1
-        endwhile
-
-        call setline(i + 1, d.text)
-    endfor
-
-    setlocal nomodified
-    setlocal nomodifiable
-    call cursor(toc_line, 0)
-endfunction
-
-function! ZFTocPrev(mode)
-    let setting = s:getSetting()
-    if !empty(get(b:, 'ZFToc_patternLast', ''))
-        let titleRegExp=ZFE2v(b:ZFToc_patternLast)
-        let codeBlockBegin=''
-        let codeBlockEnd=''
-    elseif !empty(setting)
-        let titleRegExp=ZFE2v(setting.titleRegExp)
-        let codeBlockBegin=ZFE2v(setting.codeBlockBegin)
-        let codeBlockEnd=ZFE2v(setting.codeBlockEnd)
-    else
-        ZFToc
-        return
-    endif
     normal! m`
     if a:mode=='v'
         execute "normal! gv\<esc>"
@@ -328,20 +330,12 @@ function! ZFTocPrev(mode)
         normal! m>gv
     endif
 endfunction
-function! ZFTocNext(mode)
-    let setting = s:getSetting()
-    if !empty(get(b:, 'ZFToc_patternLast', ''))
-        let titleRegExp=ZFE2v(b:ZFToc_patternLast)
-        let codeBlockBegin=''
-        let codeBlockEnd=''
-    elseif !empty(setting)
-        let titleRegExp=ZFE2v(setting.titleRegExp)
-        let codeBlockBegin=ZFE2v(setting.codeBlockBegin)
-        let codeBlockEnd=ZFE2v(setting.codeBlockEnd)
-    else
-        ZFToc
-        return
-    endif
+
+function! s:tocNext(setting, mode)
+    let titleRegExp = ZFE2v(a:setting.titleRegExp)
+    let codeBlockBegin = ZFE2v(get(a:setting, 'codeBlockBegin', ''))
+    let codeBlockEnd = ZFE2v(get(a:setting, 'codeBlockEnd', ''))
+
     normal! m`
     if a:mode=='v'
         execute "normal! gv\<esc>"
