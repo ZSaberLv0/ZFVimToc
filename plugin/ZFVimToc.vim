@@ -74,7 +74,7 @@ function! ZFTocGeneric(autoStart)
             unlet b:ZFTocFallback_noMatch
             unlet b:ZFTocFallback_setting
         endif
-        call feedkeys(':ZFToc' . (a:autoStart ? "\<cr>" : ' '), 't')
+        call feedkeys(':ZFToc' . (a:autoStart ? "\<cr>" : ' '), 'nt')
 
         " restore in case user canceled
         if empty(get(b:, 'ZFTocFallback_setting', {})) && exists('saved_noMatch')
@@ -82,7 +82,7 @@ function! ZFTocGeneric(autoStart)
             let b:ZFTocFallback_setting = saved_setting
         endif
     else
-        call feedkeys(":ZFToc\<cr>", 't')
+        call feedkeys(":ZFToc\<cr>", 'nt')
     endif
     return ''
 endfunction
