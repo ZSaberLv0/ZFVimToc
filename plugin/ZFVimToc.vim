@@ -277,6 +277,10 @@ function! s:toc(setting, ...)
         endif
         call setline(i + 1, repeat('    ', level). d.text)
     endfor
+    if toc_line == 0 && !empty(loclist)
+        let toc_line = len(loclist)
+    endif
+
     setlocal nomodified
     setlocal nomodifiable
     call cursor(toc_line, 0)
