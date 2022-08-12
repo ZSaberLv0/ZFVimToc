@@ -114,25 +114,3 @@ augroup ZFToc_setting_augroup
 augroup END
 ```
 
-# typical config
-
-here's a typical config suit for most case
-
-```
-" ^[ \t]*(class|interface|protocol)
-" ^[ \t]*(public|protected|private|virtual|static|inline|def(ine)?|func(tion)?)[a-z0-9_ \*<>]+\(
-" ^[a-z_].*=[ \t]*(func(tion)?)?[ \t]*\([a-z0-9_ ,]*\)[ \t]*([\-=]>)?[ \t]*\{
-"
-" ^[ \t]*\/\*
-" ^[ \t]*\*+\/[ \t]*$|^[ \t]*\/\*.*\*\/[ \t]*$
-let g:ZFToc_setting['*'] = {
-            \   'titleRegExp' : '\m' . '^[ \t]*\%(class\|interface\|protocol\)'
-            \     . '\|' . '^[ \t]*\%(public\|protected\|private\|virtual\|static\|inline\|def\%(ine\)\=\|func\%(tion\)\=\)[a-z0-9_ \*<>]\+('
-            \     . '\|' . '^[a-z_].*=[ \t]*\%(func\%(tion\)\=\)\=[ \t]*([a-z0-9_ ,]*)[ \t]*\%([\-=]>\)\=[ \t]*{'
-            \   ,
-            \   'codeBlockBegin' : '\m' . '^[ \t]*\/\*',
-            \   'codeBlockEnd' : '\m' . '^[ \t]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*\/[ \t]*$',
-            \   'excludeRegExp' : '^[ \t]*(\/\/|#|(rem(ark)\>)|return)',
-            \ }
-```
-
