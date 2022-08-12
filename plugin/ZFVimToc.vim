@@ -320,6 +320,8 @@ function! s:toc(setting, ...)
         return 1
     endif
 
+    call s:fold(loclist)
+
     let cur_line = line(".")
     let toc_line = 0
     lopen 25
@@ -449,5 +451,41 @@ function! s:tocNext(setting, mode)
     if a:mode == 'v'
         normal! m>gv
     endif
+endfunction
+
+function! s:fold(loclist)
+    if !get(g:, 'ZFToc_fold_enable', 1)
+        return
+    endif
+    if &foldmethod != 'manual' && !get(g:, 'ZFToc_fold_auto_change_foldmethod', 0)
+        return
+    endif
+
+    normal! zE
+
+    let iPrev = 0
+    let iEnd = line('$')
+    for loc in a:loclist
+        let i = loc['end_lnum'] - 1
+        if i > iPrev
+            call s:doFold(iPrev, i - 1)
+        endif
+        let iPrev = i + 1
+    endfor
+    if iPrev != 0 && iEnd > iPrev
+        call s:doFold(iPrev, iEnd - 1)
+    endif
+
+    normal! zR
+endfunction
+
+function! s:doFold(iL, iR)
+    if a:iL > a:iR
+        return
+    endif
+    if a:iL == a:iR && getline(a:iL + 1) == ''
+        return
+    endif
+    execute ":" . (a:iL+1) . "," . (a:iR+1) . "fold"
 endfunction
 
