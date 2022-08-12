@@ -28,10 +28,16 @@ if !exists('g:ZFToc_setting')
     call ZFTocPatternMake('markdown', '[#]', '^[ \t]*```.*$', '^[ \t]*```[ \t]*$')
 
     if get(g:, 'ZFToc_fallback_enable', 1)
+        " ^[ \t]*(class|interface|protocol)
+        " ^[ \t]*(public|protected|private|virtual|static|inline|def(ine)?|func(tion)?)[a-z0-9_ \*<>:!\?]+\(
+        " ^[a-z_].*=[ \t]*(func(tion)?)?[ \t]*\([a-z0-9_ ,:!\?]*\)[ \t]*([\-=]>)?[ \t]*\{
+        "
+        " ^[ \t]*\/\*
+        " ^[ \t]*\*+\/[ \t]*$|^[ \t]*\/\*.*\*\/[ \t]*$
         let g:ZFToc_setting['*'] = {
                     \   'titleRegExp' : '\m' . '^[ \t]*\%(class\|interface\|protocol\)'
-                    \     . '\|' . '^[ \t]*\%(public\|protected\|private\|virtual\|static\|inline\|def\%(ine\)\=\|func\%(tion\)\=\)[a-z0-9_ \*<>]\+('
-                    \     . '\|' . '^[a-z_].*=[ \t]*\%(func\%(tion\)\=\)\=[ \t]*([a-z0-9_ ,]*)[ \t]*\%([\-=]>\)\=[ \t]*{'
+                    \     . '\|' . '^[ \t]*\%(public\|protected\|private\|virtual\|static\|inline\|def\%(ine\)\=\|func\%(tion\)\=\)[a-z0-9_ \*<>:!?]\+('
+                    \     . '\|' . '^[a-z_].*=[ \t]*\%(func\%(tion\)\=\)\=[ \t]*([a-z0-9_ ,:!?]*)[ \t]*\%([\-=]>\)\=[ \t]*{'
                     \   ,
                     \   'codeBlockBegin' : '\m' . '^[ \t]*\/\*',
                     \   'codeBlockEnd' : '\m' . '^[ \t]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*\/[ \t]*$',
