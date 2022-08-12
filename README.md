@@ -85,8 +85,8 @@ about pattern regexp:
 
 * we use [othree/eregex.vim](https://github.com/othree/eregex.vim) for regexp,
     instead of vim's builtin regexp,
-    but you may still use original vim's pattern by adding `\v` (`:h /\v`) at head,
-    for example: `\v(abc)`
+    but you may still use original vim's pattern by adding `\v` or `\m` series (`:h /\v`) at head,
+    for example: `\m(abc)`
 
 
 # additional settings
