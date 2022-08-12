@@ -45,6 +45,7 @@ you may add config for your own filetype
 ```
 let g:ZFToc_setting['markdown'] = {
             \     'titleRegExp' : '^[ \t]*[#]+.*$',
+            \     'titleInfoGetter' : '',
             \     'titleLevelRegExpMatch' : '^[ \t]*([#]+).*$',
             \     'titleLevelRegExpReplace' : '\1',
             \     'titleNameRegExpMatch' : '^[ \t]*[#]+[ \t]*(<.*?>)?[ \t]*(.*?)[ \t]*(<.*?>)?[ \t]*$',
@@ -70,11 +71,24 @@ let g:ZFToc_setting['*'] = {
 patterns:
 
 * `titleRegExp` : required, regexp to match title
-* `titleLevelRegExpMatch` and `titleLevelRegExpReplace` : optional, regexp to check title level,
-    result should be any string, whose (length - 1) indicates the title's level
-* `titleNameRegExpMatch` and `titleNameRegExpReplace` : optional,
-    regexp to convert title name to human readable one,
-    empty to use the original matched line
+* `titleInfoGetter` : optional, `function(title, line)` to obtain title info to show in location window,
+    if supplied, you should return a Dict that contains necessary info:
+
+    ```
+    {
+      'text' : 'the text to show in location window',
+      'level' : 'the indent level of the title',
+    }
+    ```
+
+    or, you may use these patterns to convert the title:
+
+    * `titleLevelRegExpMatch` and `titleLevelRegExpReplace` : optional, regexp to check title level,
+        result should be any string, whose (length - 1) indicates the title's level
+    * `titleNameRegExpMatch` and `titleNameRegExpReplace` : optional,
+        regexp to convert title name to human readable one,
+        empty to use the original matched line
+
 * `codeBlockBegin` and `codeBlockEnd` : optional,
     regexp to match code block,
     any contents inside the code block won't be considered as title,

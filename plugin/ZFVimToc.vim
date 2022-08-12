@@ -16,6 +16,7 @@ function! ZFTocPatternMake(ft, titleToken, codeBlockBegin, codeBlockEnd)
     endif
     let g:ZFToc_setting[a:ft] = {
                 \     'titleRegExp' : '^[ \t]*' . a:titleToken . '+ .*$',
+                \     'titleInfoGetter' : '',
                 \     'titleLevelRegExpMatch' : '^[ \t]*(' . a:titleToken . '+).*$',
                 \     'titleLevelRegExpReplace' : '\1',
                 \     'titleNameRegExpMatch' : '^[ \t]*' . a:titleToken . '+[ \t]*(<.*?>)?[ \t]*(.*?)[ \t]*(<.*?>)?[ \t]*$',
@@ -326,6 +327,7 @@ function! s:toc(setting, ...)
     let toc_line = 0
     lopen 25
     setlocal modifiable
+    let Fn_titleInfoGetter = get(a:setting, 'titleInfoGetter', '')
     let titleLevelRegExpMatch = ZFE2v(get(a:setting, 'titleLevelRegExpMatch', ''))
     let titleLevelRegExpReplace = ZFE2v(get(a:setting, 'titleLevelRegExpReplace', ''))
     let titleNameRegExpMatch = ZFE2v(get(a:setting, 'titleNameRegExpMatch', ''))
@@ -339,18 +341,26 @@ function! s:toc(setting, ...)
                 let toc_line = i
             endif
         endif
-        if len(titleLevelRegExpMatch) > 0
-            let level = len(substitute(d.text, titleLevelRegExpMatch, titleLevelRegExpReplace, ''))
-            if level > 0
-                let level -= 1
+        if !empty(Fn_titleInfoGetter)
+            let info = Fn_titleInfoGetter(d.text, d.end_lnum)
+            if !empty(get(info, 'text', ''))
+                let d.text = info['text']
             endif
+            let level = get(info, 'level', 0)
         else
-            let level = 0
+            if len(titleLevelRegExpMatch) > 0
+                let level = len(substitute(d.text, titleLevelRegExpMatch, titleLevelRegExpReplace, ''))
+                if level > 0
+                    let level -= 1
+                endif
+            else
+                let level = 0
+            endif
+            if len(titleNameRegExpMatch) > 0
+                let d.text = substitute(d.text, titleNameRegExpMatch, titleNameRegExpReplace, '')
+            endif
         endif
-        if len(titleNameRegExpMatch) > 0
-            let d.text = substitute(d.text, titleNameRegExpMatch, titleNameRegExpReplace, '')
-        endif
-        call setline(i + 1, repeat('    ', level). d.text)
+        call setline(i + 1, repeat('    ', level) . d.text)
     endfor
     if toc_line == 0 && !empty(loclist)
         let toc_line = len(loclist)
