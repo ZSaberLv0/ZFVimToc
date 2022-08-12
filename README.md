@@ -19,7 +19,7 @@ or [buy me a coffee](https://github.com/ZSaberLv0/ZSaberLv0)
 
     * for configured `filetype` (see `g:ZFToc_setting`), TOC should show directly
         * to force use custom pattern, use `<leader>zt` or `:ZFToc YourPattern`,
-            enter an empty pattern to reset to default configured one
+            use `:ZFTocReset` to restore default config
     * for other `filetype`, you would be asked to enter regexp to search for titles
 
 1. use `[[` or `]]` to jump to prev/next title
@@ -51,7 +51,11 @@ let g:ZFToc_setting['markdown'] = {
             \     'titleNameRegExpReplace' : '\2',
             \     'codeBlockBegin' : '^[ \t]*```.*$',
             \     'codeBlockEnd' : '^[ \t]*```[ \t]*$',
+            \     'excludeRegExp' : '',
             \ }
+
+" or use `*` for any filetype
+let g:ZFToc_setting['*'] = {...}
 ```
 
 patterns:
@@ -66,6 +70,7 @@ patterns:
     regexp to match code block,
     any contents inside the code block won't be considered as title,
     empty to disable this feature
+* `excludeRegExp` : optional, exclude lines that match this pattern
 
 about pattern regexp:
 

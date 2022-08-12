@@ -27,6 +27,7 @@ endi
 
 " ============================================================
 command! -nargs=* ZFToc :call ZFToc(<q-args>)
+command! -nargs=0 ZFTocReset :call ZFTocReset()
 
 function! ZFTocMakeKeymap(...)
     let bufferOnly = get(a:, 1, 0) ? ' <buffer> ' : ''
@@ -121,6 +122,12 @@ function! ZFTocNext(mode)
     endif
 endfunction
 
+function! ZFTocReset()
+    if exists('b:ZFTocFallback_setting')
+        unlet b:ZFTocFallback_setting
+    endif
+endfunction
+
 
 " ============================================================
 function! s:getSetting()
@@ -134,7 +141,7 @@ function! s:getSetting()
     if empty(setting)
         let setting = get(g:ZFToc_setting, &filetype, {})
         if empty(setting) && &filetype != ''
-            let setting = get(g:ZFToc_setting, '', {})
+            let setting = get(g:ZFToc_setting, '*', {})
         endif
     endif
 
@@ -210,28 +217,33 @@ function! s:toc(setting, ...)
         let code_block_flag = 0
         let codeBlockBegin = ZFE2v(get(a:setting, 'codeBlockBegin', ''))
         let codeBlockEnd = ZFE2v(get(a:setting, 'codeBlockEnd', ''))
-        let i = 1
+        let excludeRegExp = ZFE2v(get(a:setting, 'excludeRegExp', ''))
+        let i = 0
         let range = len(loclist)
-        while i <= range
-            let d = loclist[i-1]
-            if match(d.text, codeBlockBegin) > -1
-                if code_block_flag > 0 && match(d.text, codeBlockEnd) > -1
+        while i < range
+            let d = loclist[i]
+            if !empty(excludeRegExp) && match(d.text, excludeRegExp) >= 0
+                call remove(loclist, i)
+                let i -= 1
+                let range -= 1
+            elseif match(d.text, codeBlockBegin) >= 0
+                if code_block_flag > 0 && match(d.text, codeBlockEnd) >= 0
                     let code_block_flag-=1
                 else
                     let code_block_flag+=1
                 endif
-                let i -= 1
                 call remove(loclist, i)
-                let range = range - 1
-            elseif match(d.text, codeBlockEnd) > -1
+                let i -= 1
+                let range -= 1
+            elseif match(d.text, codeBlockEnd) >= 0
                 let code_block_flag-=1
-                let i -= 1
                 call remove(loclist, i)
-                let range = range - 1
+                let i -= 1
+                let range -= 1
             elseif code_block_flag > 0
-                let i -= 1
                 call remove(loclist, i)
-                let range = range - 1
+                let i -= 1
+                let range -= 1
             endif
             let i += 1
         endwhile
@@ -292,6 +304,7 @@ function! s:tocPrev(setting, mode)
     let titleRegExp = ZFE2v(a:setting.titleRegExp)
     let codeBlockBegin = ZFE2v(get(a:setting, 'codeBlockBegin', ''))
     let codeBlockEnd = ZFE2v(get(a:setting, 'codeBlockEnd', ''))
+    let excludeRegExp = ZFE2v(get(a:setting, 'excludeRegExp', ''))
 
     normal! m`
     if a:mode=='v'
@@ -302,28 +315,31 @@ function! s:tocPrev(setting, mode)
     let s:target = 1
     for i in range(getpos('.')[1] - 1, 1, -1)
         let line = getline(i)
+        if !empty(excludeRegExp) && match(line, excludeRegExp) >= 0
+            continue
+        endif
         if len(codeBlockBegin) > 0
-            if match(line, codeBlockEnd) > -1
-                if code_block_flag > 0 && match(line, codeBlockBegin) > -1
+            if match(line, codeBlockEnd) >= 0
+                if code_block_flag > 0 && match(line, codeBlockBegin) >= 0
                     let code_block_flag-=1
                 else
                     let code_block_flag+=1
                 endif
                 let has_content=1
-            elseif match(line, codeBlockBegin) > -1
+            elseif match(line, codeBlockBegin) >= 0
                 let code_block_flag-=1
             elseif code_block_flag > 0
                 continue
             endif
         endif
-        if match(line, titleRegExp) > -1
+        if match(line, titleRegExp) >= 0
             if has_content==0
                 continue
             else
                 let s:target = i
                 break
             endif
-        elseif match(line, '[^ \t]') > -1
+        elseif match(line, '[^ \t]') >= 0
             let has_content=1
         endif
     endfor
@@ -339,6 +355,7 @@ function! s:tocNext(setting, mode)
     let titleRegExp = ZFE2v(a:setting.titleRegExp)
     let codeBlockBegin = ZFE2v(get(a:setting, 'codeBlockBegin', ''))
     let codeBlockEnd = ZFE2v(get(a:setting, 'codeBlockEnd', ''))
+    let excludeRegExp = ZFE2v(get(a:setting, 'excludeRegExp', ''))
 
     normal! m`
     if a:mode=='v'
@@ -349,28 +366,31 @@ function! s:tocNext(setting, mode)
     let s:target = line("$")
     for i in range(getpos(".")[1] + 1, line("$"))
         let line = getline(i)
+        if !empty(excludeRegExp) && match(line, excludeRegExp) >= 0
+            continue
+        endif
         if len(codeBlockBegin) > 0
-            if match(line, codeBlockBegin) > -1
-                if code_block_flag > 0 && match(line, codeBlockEnd) > -1
+            if match(line, codeBlockBegin) >= 0
+                if code_block_flag > 0 && match(line, codeBlockEnd) >= 0
                     let code_block_flag-=1
                 else
                     let code_block_flag+=1
                 endif
                 let has_content=1
-            elseif match(line, codeBlockEnd) > -1
+            elseif match(line, codeBlockEnd) >= 0
                 let code_block_flag-=1
             elseif code_block_flag > 0
                 continue
             endif
         endif
-        if match(line, titleRegExp) > -1
+        if match(line, titleRegExp) >= 0
             if has_content==0
                 continue
             else
                 let s:target = i
                 break
             endif
-        elseif match(line, '[^ \t]') > -1
+        elseif match(line, '[^ \t]') >= 0
             let has_content=1
         endif
     endfor
