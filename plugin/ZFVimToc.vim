@@ -1,14 +1,18 @@
 
 if exists('*E2v')
     function! ZFE2v(pattern)
-        return E2v(a:pattern)
+        if match(a:pattern, '^\\[vVmM]') == 0
+            return a:pattern
+        else
+            return E2v(a:pattern)
+        endif
     endfunction
 endif
 
 " ============================================================
 function! ZFTocPatternMake(ft, titleToken, codeBlockBegin, codeBlockEnd)
     if !exists('g:ZFToc_setting')
-        let g:ZFToc_setting={}
+        let g:ZFToc_setting = {}
     endif
     let g:ZFToc_setting[a:ft] = {
                 \     'titleRegExp' : '^[ \t]*' . a:titleToken . '+ .*$',
@@ -20,8 +24,20 @@ function! ZFTocPatternMake(ft, titleToken, codeBlockBegin, codeBlockEnd)
                 \     'codeBlockEnd' : a:codeBlockEnd,
                 \ }
 endfunction
-if !exists('g:ZFToc_setting') || !exists('g:ZFToc_setting["markdown"]')
+if !exists('g:ZFToc_setting')
     call ZFTocPatternMake('markdown', '[#]', '^[ \t]*```.*$', '^[ \t]*```[ \t]*$')
+
+    if get(g:, 'ZFToc_fallback_enable', 1)
+        let g:ZFToc_setting['*'] = {
+                    \   'titleRegExp' : '\m' . '^[ \t]*\%(class\|interface\|protocol\)'
+                    \     . '\|' . '^[ \t]*\%(public\|protected\|private\|virtual\|static\|inline\|def\%(ine\)\=\|func\%(tion\)\=\)[a-z0-9_ \*<>]\+('
+                    \     . '\|' . '^[a-z_].*=[ \t]*\%(func\%(tion\)\=\)\=[ \t]*([a-z0-9_ ,]*)[ \t]*\%([\-=]>\)\=[ \t]*{'
+                    \   ,
+                    \   'codeBlockBegin' : '\m' . '^[ \t]*\/\*',
+                    \   'codeBlockEnd' : '\m' . '^[ \t]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*\/[ \t]*$',
+                    \   'excludeRegExp' : '^[ \t]*(\/\/|#|(rem(ark)\>)|return)',
+                    \ }
+    endif
 endi
 
 
@@ -196,9 +212,48 @@ function! s:toc(setting, ...)
     try
         if len(get(a:setting, 'codeBlockBegin', '')) > 0
                     \ && len(get(a:setting, 'codeBlockEnd', '')) > 0
-            let t = '(' . a:setting.titleRegExp . ')'
-            let t .= '|(' . a:setting.codeBlockBegin . ')'
-            let t .= '|(' . a:setting.codeBlockEnd . ')'
+            if match(a:setting.titleRegExp, '^\\[vVmM]') == 0
+                        \ || match(a:setting.codeBlockBegin, '^\\[vVmM]') == 0
+                        \ || match(a:setting.codeBlockEnd, '^\\[vVmM]') == 0
+                if match(a:setting.titleRegExp, '^\\[vVmM]') == 0
+                    let t = matchstr(a:setting.titleRegExp, '^\\[vVmM]')
+                    let titleRegExp = strpart(a:setting.titleRegExp, 2)
+                endif
+                if match(a:setting.codeBlockBegin, '^\\[vVmM]') == 0
+                    let t = matchstr(a:setting.codeBlockBegin, '^\\[vVmM]')
+                    let codeBlockBegin = strpart(a:setting.codeBlockBegin, 2)
+                endif
+                if match(a:setting.codeBlockEnd, '^\\[vVmM]') == 0
+                    let t = matchstr(a:setting.codeBlockEnd, '^\\[vVmM]')
+                    let codeBlockEnd = strpart(a:setting.codeBlockEnd, 2)
+                endif
+
+                if t == '\v'
+                    let tL = '('
+                    let tR = ')'
+                    let tS = '|'
+                elseif t == '\V'
+                    let tL = '\('
+                    let tR = '\)'
+                    let tS = '\|'
+                elseif t == '\m'
+                    let tL = '\('
+                    let tR = '\)'
+                    let tS = '\|'
+                elseif t == '\M'
+                    let tL = '\('
+                    let tR = '\)'
+                    let tS = '\|'
+                endif
+
+                let t .=      tL . titleRegExp . tR
+                let t .= tS . tL . codeBlockBegin . tR
+                let t .= tS . tL . codeBlockEnd . tR
+            else
+                let t = '(' . a:setting.titleRegExp . ')'
+                let t .= '|(' . a:setting.codeBlockBegin . ')'
+                let t .= '|(' . a:setting.codeBlockEnd . ')'
+            endif
         else
             let t = a:setting.titleRegExp
         endif
@@ -227,16 +282,16 @@ function! s:toc(setting, ...)
                 let i -= 1
                 let range -= 1
             elseif match(d.text, codeBlockBegin) >= 0
-                if code_block_flag > 0 && match(d.text, codeBlockEnd) >= 0
-                    let code_block_flag-=1
-                else
-                    let code_block_flag+=1
+                if match(d.text, codeBlockEnd) < 0
+                    let code_block_flag += 1
                 endif
                 call remove(loclist, i)
                 let i -= 1
                 let range -= 1
             elseif match(d.text, codeBlockEnd) >= 0
-                let code_block_flag-=1
+                if code_block_flag > 0
+                    let code_block_flag -= 1
+                endif
                 call remove(loclist, i)
                 let i -= 1
                 let range -= 1
@@ -307,11 +362,10 @@ function! s:tocPrev(setting, mode)
     let excludeRegExp = ZFE2v(get(a:setting, 'excludeRegExp', ''))
 
     normal! m`
-    if a:mode=='v'
+    if a:mode == 'v'
         execute "normal! gv\<esc>"
     endif
-    let has_content=0
-    let code_block_flag=0
+    let code_block_flag = 0
     let s:target = 1
     for i in range(getpos('.')[1] - 1, 1, -1)
         let line = getline(i)
@@ -320,33 +374,28 @@ function! s:tocPrev(setting, mode)
         endif
         if len(codeBlockBegin) > 0
             if match(line, codeBlockEnd) >= 0
-                if code_block_flag > 0 && match(line, codeBlockBegin) >= 0
-                    let code_block_flag-=1
-                else
-                    let code_block_flag+=1
+                if match(line, codeBlockBegin) < 0
+                    let code_block_flag += 1
                 endif
-                let has_content=1
+                continue
             elseif match(line, codeBlockBegin) >= 0
-                let code_block_flag-=1
+                if code_block_flag > 0
+                    let code_block_flag -= 1
+                endif
+                continue
             elseif code_block_flag > 0
                 continue
             endif
         endif
         if match(line, titleRegExp) >= 0
-            if has_content==0
-                continue
-            else
-                let s:target = i
-                break
-            endif
-        elseif match(line, '[^ \t]') >= 0
-            let has_content=1
+            let s:target = i
+            break
         endif
     endfor
     let curPos = getpos('.')
     let curPos[1] = s:target
     call setpos('.', curPos)
-    if a:mode=='v'
+    if a:mode == 'v'
         normal! m>gv
     endif
 endfunction
@@ -358,11 +407,10 @@ function! s:tocNext(setting, mode)
     let excludeRegExp = ZFE2v(get(a:setting, 'excludeRegExp', ''))
 
     normal! m`
-    if a:mode=='v'
+    if a:mode == 'v'
         execute "normal! gv\<esc>"
     endif
-    let has_content=0
-    let code_block_flag=0
+    let code_block_flag = 0
     let s:target = line("$")
     for i in range(getpos(".")[1] + 1, line("$"))
         let line = getline(i)
@@ -371,33 +419,28 @@ function! s:tocNext(setting, mode)
         endif
         if len(codeBlockBegin) > 0
             if match(line, codeBlockBegin) >= 0
-                if code_block_flag > 0 && match(line, codeBlockEnd) >= 0
-                    let code_block_flag-=1
-                else
-                    let code_block_flag+=1
+                if match(line, codeBlockEnd) < 0
+                    let code_block_flag += 1
                 endif
-                let has_content=1
+                continue
             elseif match(line, codeBlockEnd) >= 0
-                let code_block_flag-=1
+                if code_block_flag > 0
+                    let code_block_flag -= 1
+                endif
+                continue
             elseif code_block_flag > 0
                 continue
             endif
         endif
         if match(line, titleRegExp) >= 0
-            if has_content==0
-                continue
-            else
-                let s:target = i
-                break
-            endif
-        elseif match(line, '[^ \t]') >= 0
-            let has_content=1
+            let s:target = i
+            break
         endif
     endfor
     let curPos = getpos('.')
     let curPos[1] = s:target
     call setpos('.', curPos)
-    if a:mode=='v'
+    if a:mode == 'v'
         normal! m>gv
     endif
 endfunction

@@ -54,8 +54,24 @@ let g:ZFToc_setting['markdown'] = {
             \     'excludeRegExp' : '',
             \ }
 
-" or use `*` for any filetype
-let g:ZFToc_setting['*'] = {...}
+" or use `*` for any filetype, you may disable the default config by
+"   g:ZFToc_fallback_enable = 0
+"
+" ^[ \t]*(class|interface|protocol)
+" ^[ \t]*(public|protected|private|virtual|static|inline|def(ine)?|func(tion)?)[a-z0-9_ \*<>]+\(
+" ^[a-z_].*=[ \t]*(func(tion)?)?[ \t]*\([a-z0-9_ ,]*\)[ \t]*([\-=]>)?[ \t]*\{
+"
+" ^[ \t]*\/\*
+" ^[ \t]*\*+\/[ \t]*$|^[ \t]*\/\*.*\*\/[ \t]*$
+let g:ZFToc_setting['*'] = {
+            \   'titleRegExp' : '\m' . '^[ \t]*\%(class\|interface\|protocol\)'
+            \     . '\|' . '^[ \t]*\%(public\|protected\|private\|virtual\|static\|inline\|def\%(ine\)\=\|func\%(tion\)\=\)[a-z0-9_ \*<>]\+('
+            \     . '\|' . '^[a-z_].*=[ \t]*\%(func\%(tion\)\=\)\=[ \t]*([a-z0-9_ ,]*)[ \t]*\%([\-=]>\)\=[ \t]*{'
+            \   ,
+            \   'codeBlockBegin' : '\m' . '^[ \t]*\/\*',
+            \   'codeBlockEnd' : '\m' . '^[ \t]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*\/[ \t]*$',
+            \   'excludeRegExp' : '^[ \t]*(\/\/|#|(rem(ark)\>)|return)',
+            \ }
 ```
 
 patterns:
@@ -75,7 +91,9 @@ patterns:
 about pattern regexp:
 
 * we use [othree/eregex.vim](https://github.com/othree/eregex.vim) for regexp,
-    instead of vim's builtin regexp
+    instead of vim's builtin regexp,
+    but you may still use original vim's pattern by adding `\v` (`:h /\v`) at head,
+    for example: `\v(abc)`
 
 
 # additional settings
@@ -94,5 +112,27 @@ augroup ZFToc_setting_augroup
                 \| nnoremap <buffer> <silent> o <cr>:lclose<cr>
                 \| setlocal foldmethod=indent
 augroup END
+```
+
+# typical config
+
+here's a typical config suit for most case
+
+```
+" ^[ \t]*(class|interface|protocol)
+" ^[ \t]*(public|protected|private|virtual|static|inline|def(ine)?|func(tion)?)[a-z0-9_ \*<>]+\(
+" ^[a-z_].*=[ \t]*(func(tion)?)?[ \t]*\([a-z0-9_ ,]*\)[ \t]*([\-=]>)?[ \t]*\{
+"
+" ^[ \t]*\/\*
+" ^[ \t]*\*+\/[ \t]*$|^[ \t]*\/\*.*\*\/[ \t]*$
+let g:ZFToc_setting['*'] = {
+            \   'titleRegExp' : '\m' . '^[ \t]*\%(class\|interface\|protocol\)'
+            \     . '\|' . '^[ \t]*\%(public\|protected\|private\|virtual\|static\|inline\|def\%(ine\)\=\|func\%(tion\)\=\)[a-z0-9_ \*<>]\+('
+            \     . '\|' . '^[a-z_].*=[ \t]*\%(func\%(tion\)\=\)\=[ \t]*([a-z0-9_ ,]*)[ \t]*\%([\-=]>\)\=[ \t]*{'
+            \   ,
+            \   'codeBlockBegin' : '\m' . '^[ \t]*\/\*',
+            \   'codeBlockEnd' : '\m' . '^[ \t]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*\/[ \t]*$',
+            \   'excludeRegExp' : '^[ \t]*(\/\/|#|(rem(ark)\>)|return)',
+            \ }
 ```
 
