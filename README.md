@@ -61,6 +61,7 @@ let g:ZFToc_setting['*'] = {
             \   'titleRegExp' : '\m' . '^[ \t]*\%(class\|interface\|protocol\)\>'
             \     . '\|' . '^[ \t]*\%(public\|protected\|private\|virtual\|static\|inline\|def\%(ine\)\=\|func\%(tion\)\=\)[a-z0-9_ \*<>:!?]\+('
             \     . '\|' . '^[a-z_].*=[ \t]*\%(func\%(tion\)\=\)\=[ \t]*([a-z0-9_ ,:!?]*)[ \t]*\%([\-=]>\)\=[ \t]*{'
+            \     . '\|' . '^[ \t]*[a-z0-9_]\+[ \t]*([^!;=]*)[ \t]*\%({\|\n[ \t]*{\)'
             \   ,
             \   'codeBlockBegin' : '\m' . '^[ \t]*\/\*',
             \   'codeBlockEnd' : '\m' . '^[ \t]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*\/[ \t]*$',
