@@ -36,6 +36,8 @@ if !exists('g:ZFToc_setting')
         "
         " ^[ \t]*\/\*
         " ^[ \t]*\*+\/[ \t]*$|^[ \t]*\/\*.*\*\/[ \t]*$
+        "
+        " ^[ \t]*(\/\/|#|rem(ark)\>|return\>|if\>|for_?(each)?\>|while\>)
         let g:ZFToc_setting['*'] = {
                     \   'titleRegExp' : '\m' . '^[ \t]*\%(class\|interface\|protocol\)\>'
                     \     . '\|' . '^[ \t]*\%(public\|protected\|private\|virtual\|static\|inline\|def\%(ine\)\=\|func\%(tion\)\=\)[a-z0-9_ \*<>:!?]\+('
@@ -44,7 +46,7 @@ if !exists('g:ZFToc_setting')
                     \   ,
                     \   'codeBlockBegin' : '\m' . '^[ \t]*\/\*',
                     \   'codeBlockEnd' : '\m' . '^[ \t]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*\/[ \t]*$',
-                    \   'excludeRegExp' : '^[ \t]*(\/\/|#|(rem(ark)\>)|return)',
+                    \   'excludeRegExp' : '^[ \t]*(\/\/|#|rem(ark)\>|return\>|if\>|for_?(each)?\>|while\>)',
                     \ }
     endif
 endi
