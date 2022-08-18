@@ -65,7 +65,7 @@ let g:ZFToc_setting['*'] = {
             \   ,
             \   'codeBlockBegin' : '\m' . '^[ \t]*\/\*',
             \   'codeBlockEnd' : '\m' . '^[ \t]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*\/[ \t]*$',
-            \   'excludeRegExp' : '^[ \t]*(\/\/|#|rem(ark)\>|return\>|if\>|for_?(each)?\>|while\>)',
+            \   'excludeRegExp' : '^[ \t]*(\/\/|#|rem(ark)\>|return\>|if\>|for_?(each)?\>|while\>|switch\>)',
             \ }
 ```
 
