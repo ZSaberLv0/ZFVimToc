@@ -346,7 +346,7 @@ function! s:toc(setting, ...)
             endif
         endif
         if !empty(Fn_titleInfoGetter)
-            let info = Fn_titleInfoGetter(d.text, d.end_lnum)
+            let info = Fn_titleInfoGetter(d.text, d.lnum)
             if !empty(get(info, 'text', ''))
                 let d.text = info['text']
             endif
@@ -480,7 +480,7 @@ function! s:fold(loclist)
     let iPrev = 0
     let iEnd = line('$')
     for loc in a:loclist
-        let i = loc['end_lnum'] - 1
+        let i = loc['lnum'] - 1
         if i > iPrev
             call s:doFold(iPrev, i - 1)
         endif
