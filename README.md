@@ -62,10 +62,11 @@ let g:ZFToc_setting['*'] = {
             \     . '\|' . '^[ \t]*\%(public\|protected\|private\|virtual\|static\|inline\|def\%(ine\)\=\|func\%(tion\)\=\)[a-z0-9_ \*<>:!?]\+('
             \     . '\|' . '^[a-z_].*=[ \t]*\%(func\%(tion\)\=\)\=[ \t]*([a-z0-9_ ,:!?]*)[ \t]*\%([\-=]>\)\=[ \t]*{'
             \     . '\|' . '^[ \t]*[a-z0-9_]\+[ \t]*([^!;=()]*)[ \t]*\%({\|\n[ \t]*{\)'
+            \     . '\|' . '^[ \t]*[a-z_][a-z0-9_ <>\*\&]\+[ \t]\+[a-z0-9_][a-z0-9_:#]\+[ \t]*('
             \   ,
             \   'codeBlockBegin' : '\m' . '^[ \t]*\/\*',
             \   'codeBlockEnd' : '\m' . '^[ \t]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*\/[ \t]*$',
-            \   'excludeRegExp' : '^[ \t]*(\/\/|#|rem(ark)\>|return\>|if\>|for_?(each)?\>|while\>|switch\>)',
+            \   'excludeRegExp' : '^[ \t]*(\/\/|#|rem(ark)\>|return\>|if\>|else\>|elseif\>|elif\>|fi\>|for_?(each)?\>|while\>|switch\>)',
             \ }
 ```
 
