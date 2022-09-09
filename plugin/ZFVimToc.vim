@@ -37,8 +37,6 @@ if !exists('g:ZFToc_setting')
         "
         " ^[ \t]*\/\*
         " ^[ \t]*\*+\/[ \t]*$|^[ \t]*\/\*.*\*\/[ \t]*$
-        "
-        " ^[ \t]*(\/\/|#|rem(ark)\>|return\>|if\>|for_?(each)?\>|while\>|switch\>)
         let g:ZFToc_setting['*'] = {
                     \   'titleRegExp' : '\m' . '^[ \t]*\%(class\|interface\|protocol\)\>'
                     \     . '\|' . '^[ \t]*\%(public\|protected\|private\|virtual\|static\|inline\|def\%(ine\)\=\|func\%(tion\)\=\)[a-z0-9_ \*<>:!?]\+('
@@ -48,7 +46,7 @@ if !exists('g:ZFToc_setting')
                     \   ,
                     \   'codeBlockBegin' : '\m' . '^[ \t]*\/\*',
                     \   'codeBlockEnd' : '\m' . '^[ \t]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*\/[ \t]*$',
-                    \   'excludeRegExp' : '^[ \t]*(\/\/|#|rem(ark)\>|return\>|if\>|else\>|elseif\>|elif\>|fi\>|for_?(each)?\>|while\>|switch\>)',
+                    \   'excludeRegExp' : '^[ \t]*(\/\/|#|rem(ark)\>|return\>|if\>|else\>|elseif\>|elif\>|fi\>|for_?(each)?\>|while\>|switch\>|call\>)',
                     \ }
     endif
 endi
@@ -97,18 +95,18 @@ function! ZFTocGeneric(autoStart)
 
     " use feedkeys to bypass E523
     " reason: functions inside expr map can not change buffer text
-    if get(b:, 'ZFTocFallback_noMatch', 0) || !a:autoStart
-        if exists('b:ZFTocFallback_noMatch')
-            let saved_noMatch = b:ZFTocFallback_noMatch
+    if !empty(get(b:, 'ZFTocFallback_loclist', [])) || !a:autoStart
+        if !empty(get(b:, 'ZFTocFallback_loclist', []))
+            let saved_loclist = b:ZFTocFallback_loclist
             let saved_setting = b:ZFTocFallback_setting
-            unlet b:ZFTocFallback_noMatch
+            unlet b:ZFTocFallback_loclist
             unlet b:ZFTocFallback_setting
         endif
         call feedkeys(':ZFToc' . (a:autoStart ? "\<cr>" : ' '), 'nt')
 
         " restore in case user canceled
-        if empty(get(b:, 'ZFTocFallback_setting', {})) && exists('saved_noMatch')
-            let b:ZFTocFallback_noMatch = saved_noMatch
+        if empty(get(b:, 'ZFTocFallback_setting', {})) && exists('saved_loclist')
+            let b:ZFTocFallback_loclist = saved_loclist
             let b:ZFTocFallback_setting = saved_setting
         endif
     else
@@ -121,7 +119,7 @@ function! ZFToc(...)
     if empty(expand('%'))
         redraw!
         echo '[ZFToc] no file'
-        return 0
+        return []
     endif
 
     let setting = s:getSetting()
@@ -134,26 +132,22 @@ function! ZFToc(...)
 endfunction
 
 function! ZFTocPrev(mode)
-    let setting = s:getSetting()
-    if !empty(setting)
-        call s:tocPrev(setting, a:mode)
-    elseif s:prepareSetting() && s:toc(b:ZFTocFallback_setting, 0)
-        call s:tocPrev(b:ZFTocFallback_setting, a:mode)
-    endif
+    call s:tocJump(a:mode, 0)
 endfunction
 
 function! ZFTocNext(mode)
-    let setting = s:getSetting()
-    if !empty(setting)
-        call s:tocNext(setting, a:mode)
-    elseif s:prepareSetting() && s:toc(b:ZFTocFallback_setting, 0)
-        call s:tocNext(b:ZFTocFallback_setting, a:mode)
-    endif
+    call s:tocJump(a:mode, 1)
 endfunction
 
 function! ZFTocReset()
+    if exists('b:ZFTocFallback_loclist')
+        unlet b:ZFTocFallback_loclist
+    endif
     if exists('b:ZFTocFallback_setting')
         unlet b:ZFTocFallback_setting
+    endif
+    if exists('b:ZFToc_loclist')
+        unlet b:ZFToc_loclist
     endif
 endfunction
 
@@ -184,7 +178,7 @@ endfunction
 function! s:prepareSetting(...)
     let pattern = get(a:, 1, '')
     if empty(pattern)
-        if get(b:, 'ZFTocFallback_noMatch', 0) || empty(get(b:, 'ZFTocFallback_setting', {}))
+        if !empty(get(b:, 'ZFTocFallback_loclist', [])) || empty(get(b:, 'ZFTocFallback_setting', {}))
             call inputsave()
             let pattern = input('[ZFToc] title pattern: ',
                         \ get(get(b:, 'ZFTocFallback_setting', {}), 'titleRegExp', ''))
@@ -215,30 +209,34 @@ function! s:ZFTocFallback(...)
     if !s:prepareSetting(get(a:, 1, ''))
         return 0
     endif
-    let b:ZFTocFallback_noMatch = s:toc(b:ZFTocFallback_setting)
-    return b:ZFTocFallback_noMatch
+    let b:ZFTocFallback_loclist = s:toc(b:ZFTocFallback_setting)
+    return b:ZFTocFallback_loclist
 endfunction
 
 function! s:toc(setting, ...)
     let autoOpen = get(a:, 1, 1)
 
+    if exists('b:ZFToc_loclist')
+        unlet b:ZFToc_loclist
+    endif
+
     try
         if len(get(a:setting, 'codeBlockBegin', '')) > 0
                     \ && len(get(a:setting, 'codeBlockEnd', '')) > 0
-            if match(a:setting.titleRegExp, '^\\[vVmM]') == 0
-                        \ || match(a:setting.codeBlockBegin, '^\\[vVmM]') == 0
-                        \ || match(a:setting.codeBlockEnd, '^\\[vVmM]') == 0
-                if match(a:setting.titleRegExp, '^\\[vVmM]') == 0
-                    let t = matchstr(a:setting.titleRegExp, '^\\[vVmM]')
-                    let titleRegExp = strpart(a:setting.titleRegExp, 2)
+            if match(a:setting['titleRegExp'], '^\\[vVmM]') == 0
+                        \ || match(a:setting['codeBlockBegin'], '^\\[vVmM]') == 0
+                        \ || match(a:setting['codeBlockEnd'], '^\\[vVmM]') == 0
+                if match(a:setting['titleRegExp'], '^\\[vVmM]') == 0
+                    let t = matchstr(a:setting['titleRegExp'], '^\\[vVmM]')
+                    let titleRegExp = strpart(a:setting['titleRegExp'], 2)
                 endif
-                if match(a:setting.codeBlockBegin, '^\\[vVmM]') == 0
-                    let t = matchstr(a:setting.codeBlockBegin, '^\\[vVmM]')
-                    let codeBlockBegin = strpart(a:setting.codeBlockBegin, 2)
+                if match(a:setting['codeBlockBegin'], '^\\[vVmM]') == 0
+                    let t = matchstr(a:setting['codeBlockBegin'], '^\\[vVmM]')
+                    let codeBlockBegin = strpart(a:setting['codeBlockBegin'], 2)
                 endif
-                if match(a:setting.codeBlockEnd, '^\\[vVmM]') == 0
-                    let t = matchstr(a:setting.codeBlockEnd, '^\\[vVmM]')
-                    let codeBlockEnd = strpart(a:setting.codeBlockEnd, 2)
+                if match(a:setting['codeBlockEnd'], '^\\[vVmM]') == 0
+                    let t = matchstr(a:setting['codeBlockEnd'], '^\\[vVmM]')
+                    let codeBlockEnd = strpart(a:setting['codeBlockEnd'], 2)
                 endif
 
                 if t == '\v'
@@ -263,21 +261,21 @@ function! s:toc(setting, ...)
                 let t .= tS . tL . codeBlockBegin . tR
                 let t .= tS . tL . codeBlockEnd . tR
             else
-                let t = '(' . a:setting.titleRegExp . ')'
-                let t .= '|(' . a:setting.codeBlockBegin . ')'
-                let t .= '|(' . a:setting.codeBlockEnd . ')'
+                let t = '(' . a:setting['titleRegExp'] . ')'
+                let t .= '|(' . a:setting['codeBlockBegin'] . ')'
+                let t .= '|(' . a:setting['codeBlockEnd'] . ')'
             endif
         else
-            let t = a:setting.titleRegExp
+            let t = a:setting['titleRegExp']
         endif
         execute 'silent lvimgrep /' . ZFE2v(t) . '/j %'
     catch /E480/
         redraw!
         echom "[ZFToc] no titles."
-        return 0
+        return []
     catch
         echom v:exception
-        return 0
+        return []
     endtry
 
     let loclist = getloclist(0)
@@ -290,18 +288,18 @@ function! s:toc(setting, ...)
         let range = len(loclist)
         while i < range
             let d = loclist[i]
-            if !empty(excludeRegExp) && match(d.text, excludeRegExp) >= 0
+            if !empty(excludeRegExp) && match(d['text'], excludeRegExp) >= 0
                 call remove(loclist, i)
                 let i -= 1
                 let range -= 1
-            elseif match(d.text, codeBlockBegin) >= 0
-                if match(d.text, codeBlockEnd) < 0
+            elseif match(d['text'], codeBlockBegin) >= 0
+                if match(d['text'], codeBlockEnd) < 0
                     let code_block_flag += 1
                 endif
                 call remove(loclist, i)
                 let i -= 1
                 let range -= 1
-            elseif match(d.text, codeBlockEnd) >= 0
+            elseif match(d['text'], codeBlockEnd) >= 0
                 if code_block_flag > 0
                     let code_block_flag -= 1
                 endif
@@ -317,14 +315,16 @@ function! s:toc(setting, ...)
         endwhile
         call setloclist(0, loclist)
     endif
-
     if empty(loclist)
         redraw!
         echom "[ZFToc] no titles."
-        return 0
+        return []
     endif
+
+    let b:ZFToc_loclist = loclist
+
     if !autoOpen
-        return 1
+        return loclist
     endif
 
     call s:fold(loclist)
@@ -341,21 +341,21 @@ function! s:toc(setting, ...)
     for i in range(len(loclist))
         let d = loclist[i]
         if toc_line == 0
-            if d.lnum == cur_line
+            if d['lnum'] == cur_line
                 let toc_line = i + 1
-            elseif d.lnum > cur_line
+            elseif d['lnum'] > cur_line
                 let toc_line = i
             endif
         endif
         if !empty(Fn_titleInfoGetter)
-            let info = Fn_titleInfoGetter(d.text, d.lnum)
+            let info = Fn_titleInfoGetter(d['text'], d['lnum'])
             if !empty(get(info, 'text', ''))
-                let d.text = info['text']
+                let d['text'] = info['text']
             endif
             let level = get(info, 'level', 0)
         else
             if len(titleLevelRegExpMatch) > 0
-                let level = len(substitute(d.text, titleLevelRegExpMatch, titleLevelRegExpReplace, ''))
+                let level = len(substitute(d['text'], titleLevelRegExpMatch, titleLevelRegExpReplace, ''))
                 if level > 0
                     let level -= 1
                 endif
@@ -363,10 +363,10 @@ function! s:toc(setting, ...)
                 let level = 0
             endif
             if len(titleNameRegExpMatch) > 0
-                let d.text = substitute(d.text, titleNameRegExpMatch, titleNameRegExpReplace, '')
+                let d['text'] = substitute(d['text'], titleNameRegExpMatch, titleNameRegExpReplace, '')
             endif
         endif
-        call setline(i + 1, repeat('    ', level) . d.text)
+        call setline(i + 1, repeat('    ', level) . d['text'])
     endfor
     if toc_line == 0 && !empty(loclist)
         let toc_line = len(loclist)
@@ -376,97 +376,7 @@ function! s:toc(setting, ...)
     setlocal nomodifiable
     call cursor(toc_line, 0)
 
-    return 1
-endfunction
-
-function! s:tocPrev(setting, mode)
-    let titleRegExp = ZFE2v(a:setting.titleRegExp)
-    let codeBlockBegin = ZFE2v(get(a:setting, 'codeBlockBegin', ''))
-    let codeBlockEnd = ZFE2v(get(a:setting, 'codeBlockEnd', ''))
-    let excludeRegExp = ZFE2v(get(a:setting, 'excludeRegExp', ''))
-
-    normal! m`
-    if a:mode == 'v'
-        execute "normal! gv\<esc>"
-    endif
-    let code_block_flag = 0
-    let s:target = 1
-    for i in range(getpos('.')[1] - 1, 1, -1)
-        let line = getline(i)
-        if !empty(excludeRegExp) && match(line, excludeRegExp) >= 0
-            continue
-        endif
-        if len(codeBlockBegin) > 0
-            if match(line, codeBlockEnd) >= 0
-                if match(line, codeBlockBegin) < 0
-                    let code_block_flag += 1
-                endif
-                continue
-            elseif match(line, codeBlockBegin) >= 0
-                if code_block_flag > 0
-                    let code_block_flag -= 1
-                endif
-                continue
-            elseif code_block_flag > 0
-                continue
-            endif
-        endif
-        if match(line, titleRegExp) >= 0
-            let s:target = i
-            break
-        endif
-    endfor
-    let curPos = getpos('.')
-    let curPos[1] = s:target
-    call setpos('.', curPos)
-    if a:mode == 'v'
-        normal! m>gv
-    endif
-endfunction
-
-function! s:tocNext(setting, mode)
-    let titleRegExp = ZFE2v(a:setting.titleRegExp)
-    let codeBlockBegin = ZFE2v(get(a:setting, 'codeBlockBegin', ''))
-    let codeBlockEnd = ZFE2v(get(a:setting, 'codeBlockEnd', ''))
-    let excludeRegExp = ZFE2v(get(a:setting, 'excludeRegExp', ''))
-
-    normal! m`
-    if a:mode == 'v'
-        execute "normal! gv\<esc>"
-    endif
-    let code_block_flag = 0
-    let s:target = line("$")
-    for i in range(getpos(".")[1] + 1, line("$"))
-        let line = getline(i)
-        if !empty(excludeRegExp) && match(line, excludeRegExp) >= 0
-            continue
-        endif
-        if len(codeBlockBegin) > 0
-            if match(line, codeBlockBegin) >= 0
-                if match(line, codeBlockEnd) < 0
-                    let code_block_flag += 1
-                endif
-                continue
-            elseif match(line, codeBlockEnd) >= 0
-                if code_block_flag > 0
-                    let code_block_flag -= 1
-                endif
-                continue
-            elseif code_block_flag > 0
-                continue
-            endif
-        endif
-        if match(line, titleRegExp) >= 0
-            let s:target = i
-            break
-        endif
-    endfor
-    let curPos = getpos('.')
-    let curPos[1] = s:target
-    call setpos('.', curPos)
-    if a:mode == 'v'
-        normal! m>gv
-    endif
+    return loclist
 endfunction
 
 function! s:fold(loclist)
@@ -503,5 +413,81 @@ function! s:doFold(iL, iR)
         return
     endif
     execute ":" . (a:iL+1) . "," . (a:iR+1) . "fold"
+endfunction
+
+function! s:tocJump(mode, isNext)
+    if &filetype == 'qf'
+        if a:isNext
+            normal! j
+        else
+            normal! k
+        endif
+        execute "normal \<cr>"
+        return
+    endif
+
+    normal! m`
+    if a:mode == 'v'
+        execute "normal! gv\<esc>"
+    endif
+
+    let setting = s:getSetting()
+    if !empty(setting)
+        let loclist = s:toc(setting, 0)
+    elseif s:prepareSetting()
+        let loclist = s:toc(b:ZFTocFallback_setting, 0)
+    else
+        let loclist = []
+    endif
+    if !empty(loclist)
+        call s:tocJumpImpl(loclist, a:isNext)
+    endif
+
+    if a:mode == 'v'
+        normal! m>gv
+    endif
+endfunction
+function! s:tocJumpImpl(loclist, isNext)
+    let line = line('.')
+    if a:isNext
+        let lineTarget = line('$')
+        let i = len(a:loclist) - 1
+        let iEnd = -1
+        while i != iEnd
+            let d = a:loclist[i]
+            if line >= d['lnum']
+                if i + 1 < len(a:loclist)
+                    let lineTarget = a:loclist[i + 1]['lnum']
+                endif
+                break
+            else
+                let lineTarget = d['lnum']
+            endif
+            let i -= 1
+        endwhile
+    else
+        let lineTarget = 1
+        let i = 0
+        let iEnd = len(a:loclist)
+        while i != iEnd
+            let d = a:loclist[i]
+            if line <= d['lnum']
+                if i - 1 >= 0
+                    let lineTarget = a:loclist[i - 1]['lnum']
+                endif
+                break
+            else
+                let lineTarget = d['lnum']
+            endif
+            let i += 1
+        endwhile
+    endif
+    if line == lineTarget
+        return
+    endif
+
+    let curPos = getpos('.')
+    let curPos[1] = lineTarget
+    call setpos('.', curPos)
 endfunction
 
