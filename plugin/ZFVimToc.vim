@@ -30,19 +30,33 @@ if !exists('g:ZFToc_setting')
 
     if get(g:, 'ZFToc_fallback_enable', 1)
         " ^[ \t]*(class|interface|protocol)\>
+        "     class
+        "
         " ^[ \t]*(public|protected|private|virtual|static|inline|def(ine)?|func(tion)?)[a-z0-9_ \*<>:!\?]+\(
-        " ^[a-z_].*=[ \t]*(func(tion)?)?[ \t]*\([a-z0-9_ ,:!\?]*\)[ \t]*([\-=]>)?[ \t]*\{
-        " ^[ \t]*[a-z0-9_]+[ \t]*\([^!;=\(\)]*\)[ \t]*(\{|\n[ \t]*\{)
+        "     public func(
+        "
+        " ^[a-z_].*=[ \t]*(func(tion)?)?[ \t]*\([a-z0-9_ ,:!\?]*\)[ \t]*([\-=]>)?[ \t\r\n]*\{
+        "     abc = func(xx) {
+        "     abc = (xxx) => {
+        "
+        " ^[ \t]*[a-z0-9_]+[ \t]*\([^!;=\(\)]*\)[ \t\r\n]*\{
+        "     abc(xxx) {
+        "
         " ^[ \t]*[a-z_][a-z0-9_ <>\*\&]+[ \t]+[a-z0-9_][a-z0-9_:#]+[ \t]*\(
+        "     abc abc::abc#xyz(
+        "
+         " ^[ \t]*[a-z_][a-z0-9_ \t<>\*\&:]+\<operator\>.*\(
+        "     abc abc::operator xxx(
         "
         " ^[ \t]*\/\*
         " ^[ \t]*\*+\/[ \t]*$|^[ \t]*\/\*.*\*\/[ \t]*$
         let g:ZFToc_setting['*'] = {
                     \   'titleRegExp' : '\m' . '^[ \t]*\%(class\|interface\|protocol\)\>'
                     \     . '\|' . '^[ \t]*\%(public\|protected\|private\|virtual\|static\|inline\|def\%(ine\)\=\|func\%(tion\)\=\)[a-z0-9_ \*<>:!?]\+('
-                    \     . '\|' . '^[a-z_].*=[ \t]*\%(func\%(tion\)\=\)\=[ \t]*([a-z0-9_ ,:!?]*)[ \t]*\%([\-=]>\)\=[ \t]*{'
-                    \     . '\|' . '^[ \t]*[a-z0-9_]\+[ \t]*([^!;=()]*)[ \t]*\%({\|\n[ \t]*{\)'
+                    \     . '\|' . '^[a-z_].*=[ \t]*\%(func\%(tion\)\=\)\=[ \t]*([a-z0-9_ ,:!?]*)[ \t]*\%([\-=]>\)\=[ \t\r\n]*{'
+                    \     . '\|' . '^[ \t]*[a-z0-9_]\+[ \t]*([^!;=()]*)[ \t\r\n]*{'
                     \     . '\|' . '^[ \t]*[a-z_][a-z0-9_ <>\*\&]\+[ \t]\+[a-z0-9_][a-z0-9_:#]\+[ \t]*('
+                    \     . '\|' . '^[ \t]*[a-z_][a-z0-9_ \t<>\*\&:]\+\<operator\>.*('
                     \   ,
                     \   'codeBlockBegin' : '\m' . '^[ \t]*\/\*',
                     \   'codeBlockEnd' : '\m' . '^[ \t]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*\/[ \t]*$',
