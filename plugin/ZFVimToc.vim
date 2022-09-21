@@ -309,16 +309,13 @@ function! s:toc(setting, ...)
                 let i -= 1
                 let range -= 1
             elseif match(d['text'], codeBlockBegin) >= 0
-                if match(d['text'], codeBlockEnd) < 0
-                    let code_block_flag += 1
-                endif
+                        \ && (code_block_flag == 0 || match(d['text'], codeBlockEnd) < 0)
+                let code_block_flag += 1
                 call remove(loclist, i)
                 let i -= 1
                 let range -= 1
-            elseif match(d['text'], codeBlockEnd) >= 0
-                if code_block_flag > 0
-                    let code_block_flag -= 1
-                endif
+            elseif match(d['text'], codeBlockEnd) >= 0 && code_block_flag > 0
+                let code_block_flag -= 1
                 call remove(loclist, i)
                 let i -= 1
                 let range -= 1
