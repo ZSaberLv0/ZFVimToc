@@ -58,7 +58,7 @@ let g:ZFToc_setting['markdown'] = {
 " or use `*` for any filetype, you may disable the default config by
 "   g:ZFToc_fallback_enable = 0
 let g:ZFToc_setting['*'] = {
-            \   'titleRegExp' : '\m' . '^[ \t]*\%(class\|interface\|protocol\)\>'
+            \   'titleRegExp' : '\m' . '^[ \t]*\%(public\|protected\|private\|static\|final\)*[ \t]*\%(class\|interface\|protocol\|abstract\)\>'
             \     . '\|' . '^[ \t]*\%(public\|protected\|private\|virtual\|static\|inline\|def\%(ine\)\=\|func\%(tion\)\=\)[a-z0-9_ \*<>:!?]\+('
             \     . '\|' . '^[a-z_].*=[ \t]*\%(func\%(tion\)\=\)\=[ \t]*([a-z0-9_ ,:!?]*)[ \t]*\%([\-=]>\)\=[ \t\r\n]*{'
             \     . '\|' . '^[ \t]*[a-z0-9_]\+[ \t]*([^!;=()]*)[ \t\r\n]*{'

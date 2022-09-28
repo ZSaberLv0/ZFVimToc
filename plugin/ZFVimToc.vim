@@ -29,8 +29,9 @@ if !exists('g:ZFToc_setting')
     call ZFTocPatternMake('markdown', '[#]', '^[ \t]*```.*$', '^[ \t]*```[ \t]*$')
 
     if get(g:, 'ZFToc_fallback_enable', 1)
-        " ^[ \t]*(class|interface|protocol)\>
+        " ^[ \t]*(public|protected|private|static|final)*[ \t]*(class|interface|protocol|abstract)\>
         "     class
+        "     public static final interface
         "
         " ^[ \t]*(public|protected|private|virtual|static|inline|def(ine)?|func(tion)?)[a-z0-9_ \*<>:!\?]+\(
         "     public func(
@@ -53,7 +54,7 @@ if !exists('g:ZFToc_setting')
         " ^[ \t]*\/\*
         " ^[ \t]*\*+\/[ \t]*$|^[ \t]*\/\*.*\*\/[ \t]*$
         let g:ZFToc_setting['*'] = {
-                    \   'titleRegExp' : '\m' . '^[ \t]*\%(class\|interface\|protocol\)\>'
+                    \   'titleRegExp' : '\m' . '^[ \t]*\%(public\|protected\|private\|static\|final\)*[ \t]*\%(class\|interface\|protocol\|abstract\)\>'
                     \     . '\|' . '^[ \t]*\%(public\|protected\|private\|virtual\|static\|inline\|def\%(ine\)\=\|func\%(tion\)\=\)[a-z0-9_ \*<>:!?]\+('
                     \     . '\|' . '^[a-z_].*=[ \t]*\%(func\%(tion\)\=\)\=[ \t]*([a-z0-9_ ,:!?]*)[ \t]*\%([\-=]>\)\=[ \t\r\n]*{'
                     \     . '\|' . '^[ \t]*[a-z0-9_]\+[ \t]*([^!;=()]*)[ \t\r\n]*{'
