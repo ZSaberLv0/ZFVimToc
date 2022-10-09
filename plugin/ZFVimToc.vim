@@ -285,7 +285,10 @@ function! s:toc(setting, ...)
         else
             let t = a:setting['titleRegExp']
         endif
+        let wildignoreSaved = &wildignore
+        noautocmd let &wildignore = ''
         execute 'silent lvimgrep /' . ZFE2v(t) . '/j %'
+        noautocmd let &wildignore = wildignoreSaved
     catch /E480/
         redraw!
         echom "[ZFToc] no titles."
