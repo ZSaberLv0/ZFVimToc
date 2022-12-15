@@ -179,9 +179,12 @@ function! s:getSetting()
 
     let setting = get(b:, 'ZFTocFallback_setting', {})
     if empty(setting)
-        let setting = get(g:ZFToc_setting, &filetype, {})
-        if empty(setting) && &filetype != ''
-            let setting = get(g:ZFToc_setting, '*', {})
+        let setting = get(b:, 'ZFToc_setting', {})
+        if empty(setting)
+            let setting = get(g:ZFToc_setting, &filetype, {})
+            if empty(setting)
+                let setting = get(g:ZFToc_setting, '*', {})
+            endif
         endif
     endif
 

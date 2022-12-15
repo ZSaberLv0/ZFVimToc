@@ -20,7 +20,10 @@ or [buy me a coffee](https://github.com/ZSaberLv0/ZSaberLv0)
     * for configured `filetype` (see `g:ZFToc_setting`), TOC should show directly
         * to force use custom pattern, use `<leader>zt` or `:ZFToc YourPattern`,
             use `:ZFTocReset` to restore default config
-    * for other `filetype`, you would be asked to enter regexp to search for titles
+    * for other `filetype`, you may use `:ZFToc YourPattern` to use custom pattern,
+        we also bundled a default fallback for any filetypes,
+        `let g:ZFToc_setting['*']=xxx` to supply your own config
+    * for scripts, you may setup `b:ZFToc_setting` for buffer local setting
 
 1. use `[[` or `]]` to jump to prev/next title
 
@@ -123,4 +126,14 @@ augroup ZFToc_setting_augroup
                 \| setlocal foldmethod=indent
 augroup END
 ```
+
+# FAQ
+
+* Q: `Vim(lvimgrep):E872: (NFA regexp) Too many '('`
+
+    A: you would get this issue if the regex pattern contains too many groups
+        (`(abc)` for example, see `:h E53` for more info),
+        you should replace it by `\%(abc\)`,
+        since eregex.vim would always convert `(abc)` to `\(abc\)`,
+        you should use `\m\%(abc\)` manually
 
