@@ -33,7 +33,7 @@ if !exists('g:ZFToc_setting')
         "     class
         "     public static final interface
         "
-        " ^[ \t]*(public|protected|private|virtual|static|inline|def(ine)?|func(tion)?)[a-z0-9_ \*<>:!\?]+\(
+        " ^[ \t]*(public|protected|private|virtual|static|inline|extern|def(ine)?|func(tion)?)[a-z0-9_ \*<>:!\?]+\(
         "     public func(
         "
         " ^[a-z_].*=[ \t]*(func(tion)?)?[ \t]*\([a-z0-9_ ,:!\?]*\)[ \t]*([\-=]>)?[ \t\r\n]*\{
@@ -55,7 +55,7 @@ if !exists('g:ZFToc_setting')
         " ^[ \t]*\*+\/[ \t]*$|^[ \t]*\/\*.*\*\/[ \t]*$
         let g:ZFToc_setting['*'] = {
                     \   'titleRegExp' : '\m' . '^[ \t]*\%(public\|protected\|private\|static\|final\)*[ \t]*\%(class\|interface\|protocol\|abstract\)\>'
-                    \     . '\|' . '^[ \t]*\%(public\|protected\|private\|virtual\|static\|inline\|def\%(ine\)\=\|func\%(tion\)\=\)[a-z0-9_ \*<>:!?]\+('
+                    \     . '\|' . '^[ \t]*\%(public\|protected\|private\|virtual\|static\|inline\|exter\|def\%(ine\)\=\|func\%(tion\)\=\)[a-z0-9_ \*<>:!?]\+('
                     \     . '\|' . '^[a-z_].*=[ \t]*\%(func\%(tion\)\=\)\=[ \t]*([a-z0-9_ ,:!?]*)[ \t]*\%([\-=]>\)\=[ \t\r\n]*{'
                     \     . '\|' . '^[ \t]*[a-z0-9_]\+[ \t]*([^!;=()]*)[ \t\r\n]*{'
                     \     . '\|' . '^[ \t]*[a-z_][a-z0-9_ <>\*&]\+[ \t]\+[<>\*&]*[a-z_][a-z0-9_:#]\+[ \t]*('
@@ -303,7 +303,7 @@ function! s:toc(setting, ...)
 
     let loclist = getloclist(0)
     if len(get(a:setting, 'codeBlockBegin', '')) > 0
-        let code_block_flag = 0
+        let codeBlockFlag = 0
         let codeBlockBegin = ZFE2v(get(a:setting, 'codeBlockBegin', ''))
         let codeBlockEnd = ZFE2v(get(a:setting, 'codeBlockEnd', ''))
         let excludeRegExp = ZFE2v(get(a:setting, 'excludeRegExp', ''))
@@ -311,22 +311,27 @@ function! s:toc(setting, ...)
         let range = len(loclist)
         while i < range
             let d = loclist[i]
+            let codeBlockBeginMatch = match(d['text'], codeBlockBegin)
+            let codeBlockEndMatch = match(d['text'], codeBlockEnd)
             if !empty(excludeRegExp) && match(d['text'], excludeRegExp) >= 0
                 call remove(loclist, i)
                 let i -= 1
                 let range -= 1
-            elseif match(d['text'], codeBlockBegin) >= 0
-                        \ && (code_block_flag == 0 || match(d['text'], codeBlockEnd) < 0)
-                let code_block_flag += 1
+            elseif codeBlockBeginMatch >= 0
+                        \ && (codeBlockEndMatch < 0 || codeBlockBeginMatch != codeBlockEndMatch)
+                let codeBlockFlag += 1
                 call remove(loclist, i)
                 let i -= 1
                 let range -= 1
-            elseif match(d['text'], codeBlockEnd) >= 0 && code_block_flag > 0
-                let code_block_flag -= 1
+            elseif codeBlockEndMatch >= 0
+                        \ && (codeBlockFlag > 0 || codeBlockBeginMatch >= 0)
+                if codeBlockFlag > 0
+                    let codeBlockFlag -= 1
+                endif
                 call remove(loclist, i)
                 let i -= 1
                 let range -= 1
-            elseif code_block_flag > 0
+            elseif codeBlockFlag > 0
                 call remove(loclist, i)
                 let i -= 1
                 let range -= 1
