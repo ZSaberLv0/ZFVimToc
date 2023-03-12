@@ -134,6 +134,6 @@ augroup END
         (`(abc)` for example, see `:h E53` for more info),
         the solution is replace it by `\%(abc\)`
 
-        to make life easier, the default impl has already performed `\(abc\)` to `\%(abc\)`,
+    * to make life easier, the default impl has already performed `\(abc\)` to `\%(abc\)`,
         but that leads `\1` not work properly
 
