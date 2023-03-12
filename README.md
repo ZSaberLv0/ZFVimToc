@@ -42,7 +42,7 @@ let g:ZFTocKeymap_next=']]'
 
 # config your own filetype
 
-by default, only `markdown` file are configured for TOC view,
+by default, only `markdown` are explicitly configured,
 you may add config for your own filetype
 
 ```
@@ -57,22 +57,21 @@ let g:ZFToc_setting['markdown'] = {
             \     'codeBlockEnd' : '^[ \t]*```[ \t]*$',
             \     'excludeRegExp' : '',
             \ }
-
-" or use `*` for any filetype, you may disable the default config by
-"   g:ZFToc_fallback_enable = 0
-let g:ZFToc_setting['*'] = {
-            \   'titleRegExp' : '\m' . '^[ \t]*\%(public\|protected\|private\|static\|final\)*[ \t]*\%(class\|interface\|protocol\|abstract\)\>'
-            \     . '\|' . '^[ \t]*\%(public\|protected\|private\|virtual\|static\|inline\|def\%(ine\)\=\|func\%(tion\)\=\)[a-z0-9_ \*<>:!?]\+('
-            \     . '\|' . '^[a-z_].*=[ \t]*\%(func\%(tion\)\=\)\=[ \t]*([a-z0-9_ ,:!?]*)[ \t]*\%([\-=]>\)\=[ \t\r\n]*{'
-            \     . '\|' . '^[ \t]*[a-z0-9_]\+[ \t]*([^!;=()]*)[ \t\r\n]*{'
-            \     . '\|' . '^[ \t]*[a-z_][a-z0-9_ <>\*&]\+[ \t]\+[<>\*&]*[a-z_][a-z0-9_:#]\+[ \t]*('
-            \     . '\|' . '^[ \t]*\%([a-z_][a-z0-9_ \t<>\*&:]\+\)\=\<operator\>.*('
-            \   ,
-            \   'codeBlockBegin' : '\m' . '^[ \t]*\/\*',
-            \   'codeBlockEnd' : '\m' . '^[ \t]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*\/[ \t]*$',
-            \   'excludeRegExp' : '^[ \t]*(\/\/|#|rem(ark)\>|return\>|if\>|else\>|elseif\>|elif\>|fi\>|for_?(each)?\>|while\>|switch\>|call\>)',
-            \ }
 ```
+
+
+for convenient, we also bundled a default fallback for any filetype, to list anything that looks like functions
+
+```
+" use `*` for any filetype, you may disable the default config by
+"   g:ZFToc_fallback_enable = 0
+let g:ZFToc_setting['*'] = {...}
+
+" the default fallback is a little complex, see the source code for default value:
+"   https://github.com/ZSaberLv0/ZFVimToc/blob/master/plugin/ZFVimToc.vim
+" also take care of `E872` and `E53`, see FAQ bellow
+```
+
 
 patterns:
 
@@ -101,12 +100,12 @@ patterns:
     empty to disable this feature
 * `excludeRegExp` : optional, exclude lines that match this pattern
 
+
 about pattern regexp:
 
-* we use [othree/eregex.vim](https://github.com/othree/eregex.vim) for regexp,
-    instead of vim's builtin regexp,
-    but you may still use original vim's pattern by adding `\v` or `\m` series (`:h /\v`) at head,
-    for example: `\m(abc)`
+* when [othree/eregex.vim](https://github.com/othree/eregex.vim) installed,
+    we would use perl style regexp,
+    instead of vim's builtin regexp
 
 
 # additional settings
@@ -133,7 +132,8 @@ augroup END
 
     A: you would get this issue if the regex pattern contains too many groups
         (`(abc)` for example, see `:h E53` for more info),
-        you should replace it by `\%(abc\)`,
-        since eregex.vim would always convert `(abc)` to `\(abc\)`,
-        you should use `\m\%(abc\)` manually
+        the solution is replace it by `\%(abc\)`
+
+        to make life easier, the default impl has already performed `\(abc\)` to `\%(abc\)`,
+        but that leads `\1` not work properly
 

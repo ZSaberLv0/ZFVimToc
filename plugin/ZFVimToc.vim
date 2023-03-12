@@ -1,10 +1,27 @@
 
 if exists('*E2v')
     function! ZFE2v(pattern)
+        return E2v(a:pattern)
+    endfunction
+endif
+
+if !exists('*ZFTocE2v')
+    function! ZFTocE2v(pattern)
         if match(a:pattern, '^\\[vVmM]') == 0
             return a:pattern
+        endif
+
+        if exists('*ZFE2v')
+            let pattern = ZFE2v(a:pattern)
         else
-            return E2v(a:pattern)
+            let pattern = a:pattern
+        endif
+        if get(g:, 'ZFToc_fixE872', 1)
+            let pattern = substitute(pattern, '\\\\', '_ZFTOC_BS_', 'g')
+            let pattern = substitute(pattern, '\\(', '\\%(', 'g')
+            return substitute(pattern, '_ZFTOC_BS_', '\\\\', 'g')
+        else
+            return pattern
         endif
     endfunction
 endif
@@ -14,16 +31,29 @@ function! ZFTocPatternMake(ft, titleToken, codeBlockBegin, codeBlockEnd)
     if !exists('g:ZFToc_setting')
         let g:ZFToc_setting = {}
     endif
-    let g:ZFToc_setting[a:ft] = {
-                \     'titleRegExp' : '^[ \t]*' . a:titleToken . '+ .*$',
-                \     'titleInfoGetter' : '',
-                \     'titleLevelRegExpMatch' : '^[ \t]*(' . a:titleToken . '+).*$',
-                \     'titleLevelRegExpReplace' : '\1',
-                \     'titleNameRegExpMatch' : '^[ \t]*' . a:titleToken . '+[ \t]*(<.*?>)?[ \t]*(.*?)[ \t]*(<.*?>)?[ \t]*$',
-                \     'titleNameRegExpReplace' : '\2',
-                \     'codeBlockBegin' : a:codeBlockBegin,
-                \     'codeBlockEnd' : a:codeBlockEnd,
-                \ }
+    if exists('*ZFE2v')
+        let g:ZFToc_setting[a:ft] = {
+                    \     'titleRegExp' : '^[ \t]*' . a:titleToken . '+ .*$',
+                    \     'titleInfoGetter' : '',
+                    \     'titleLevelRegExpMatch' : '^[ \t]*(' . a:titleToken . '+).*$',
+                    \     'titleLevelRegExpReplace' : '\1',
+                    \     'titleNameRegExpMatch' : '^[ \t]*' . a:titleToken . '+[ \t]*(<.*?>)?[ \t]*(.*?)[ \t]*(<.*?>)?[ \t]*$',
+                    \     'titleNameRegExpReplace' : '\2',
+                    \     'codeBlockBegin' : a:codeBlockBegin,
+                    \     'codeBlockEnd' : a:codeBlockEnd,
+                    \ }
+    else
+        let g:ZFToc_setting[a:ft] = {
+                    \     'titleRegExp' : '^[ \t]*' . a:titleToken . '\+ .*$',
+                    \     'titleInfoGetter' : '',
+                    \     'titleLevelRegExpMatch' : '^[ \t]*\(' . a:titleToken . '\+\).*$',
+                    \     'titleLevelRegExpReplace' : '\1',
+                    \     'titleNameRegExpMatch' : '^[ \t]*' . a:titleToken . '\+[ \t]*\(<.\{-}>\)\=[ \t]*\(.\{-}\)[ \t]*\(<.\{-}>\)\=[ \t]*$',
+                    \     'titleNameRegExpReplace' : '\2',
+                    \     'codeBlockBegin' : a:codeBlockBegin,
+                    \     'codeBlockEnd' : a:codeBlockEnd,
+                    \ }
+    endif
 endfunction
 if !exists('g:ZFToc_setting')
     call ZFTocPatternMake('markdown', '[#]', '^[ \t]*```.*$', '^[ \t]*```[ \t]*$')
@@ -50,21 +80,41 @@ if !exists('g:ZFToc_setting')
         "
         " ^[ \t]*([a-z_][a-z0-9_ \t<>\*&:]+)?\<operator\>.*\(
         "     abc abc::operator xxx(
-        "
-        " ^[ \t]*\/\*
-        " ^[ \t]*\*+\/[ \t]*$|^[ \t]*\/\*.*\*\/[ \t]*$
-        let g:ZFToc_setting['*'] = {
-                    \   'titleRegExp' : '\m' . '^[ \t]*\%(public\|protected\|private\|static\|final\)*[ \t]*\%(class\|interface\|protocol\|abstract\)\>'
-                    \     . '\|' . '^[ \t]*\%(public\|protected\|private\|virtual\|static\|inline\|exter\|def\%(ine\)\=\|func\%(tion\)\=\)[a-z0-9_ \*<>:!?]\+('
-                    \     . '\|' . '^[a-z_].*=[ \t]*\%(func\%(tion\)\=\)\=[ \t]*([a-z0-9_ ,:!?]*)[ \t]*\%([\-=]>\)\=[ \t\r\n]*{'
-                    \     . '\|' . '^[ \t]*[a-z0-9_]\+[ \t]*([^!;=()]*)[ \t\r\n]*{'
-                    \     . '\|' . '^[ \t]*[a-z_][a-z0-9_ <>\*&]\+[ \t]\+[<>\*&]*[a-z_][a-z0-9_:#]\+[ \t]*('
-                    \     . '\|' . '^[ \t]*\%([a-z_][a-z0-9_ \t<>\*&:]\+\)\=\<operator\>.*('
-                    \   ,
-                    \   'codeBlockBegin' : '\m' . '^[ \t]*\/\*',
-                    \   'codeBlockEnd' : '\m' . '^[ \t]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*\/[ \t]*$',
-                    \   'excludeRegExp' : '^[ \t]*(\/\/|#|rem(ark)\>|return\>|if\>|else\>|elseif\>|elif\>|fi\>|for_?(each)?\>|while\>|switch\>|call\>)',
-                    \ }
+        if exists('*ZFE2v')
+            let g:ZFToc_setting['*'] = {
+                        \   'titleRegExp' : '^[ \t]*(public|protected|private|static|final)*[ \t]*(class|interface|protocol|abstract)\>'
+                        \     . '|' . '^[ \t]*(public|protected|private|virtual|static|inline|extern|def(ine)?|func(tion)?)[a-z0-9_ \*<>:!\?]+\('
+                        \     . '|' . '^[a-z_].*=[ \t]*(func(tion)?)?[ \t]*\([a-z0-9_ ,:!\?]*\)[ \t]*([\-=]>)?[ \t\r\n]*\{'
+                        \     . '|' . '^[ \t]*[a-z0-9_]+[ \t]*\([^!;=\(\)]*\)[ \t\r\n]*\{'
+                        \     . '|' . '^[ \t]*[a-z_][a-z0-9_ <>\*&]+[ \t]+[<>\*&]*[a-z_][a-z0-9_:#]+[ \t]*\('
+                        \     . '|' . '^[ \t]*([a-z_][a-z0-9_ \t<>\*&:]+)?\<operator\>.*\('
+                        \   ,
+                        \   'codeBlockBegin' : '^[ \t]*\/\*',
+                        \   'codeBlockEnd' : '^[ \t]*\*+\/[ \t]*$|^[ \t]*\/\*.*\*\/[ \t]*$',
+                        \   'excludeRegExp' : '^[ \t]*(\/\/|#|"|rem(ark)\>)'
+                        \     . '|' . '^[ \t]*(return|if|else|elseif|elif|fi|for_?(each)?|while|switch|call|echo)\>'
+                        \     . '|' . '^[ \t]*au(tocmd)?\>'
+                        \     . '|' . '^[ \t]*[nicxv](nore)?map\>'
+                        \   ,
+                        \ }
+        else
+            let g:ZFToc_setting['*'] = {
+                        \   'titleRegExp' : '^[ \t]*\(public\|protected\|private\|static\|final\)*[ \t]*\(class\|interface\|protocol\|abstract\)\>'
+                        \     . '\|' . '^[ \t]*\(public\|protected\|private\|virtual\|static\|inline\|extern\|def\(ine\)\=\|func\(tion\)\=\)[a-z0-9_ \*<>:!?]\+('
+                        \     . '\|' . '^[a-z_].*=[ \t]*\(func\(tion\)\=\)\=[ \t]*([a-z0-9_ ,:!?]*)[ \t]*\([\-=]>\)\=[ \t\r\n]*{'
+                        \     . '\|' . '^[ \t]*[a-z0-9_]\+[ \t]*([^!;=()]*)[ \t\r\n]*{'
+                        \     . '\|' . '^[ \t]*[a-z_][a-z0-9_ <>\*&]\+[ \t]\+[<>\*&]*[a-z_][a-z0-9_:#]\+[ \t]*('
+                        \     . '\|' . '^[ \t]*\([a-z_][a-z0-9_ \t<>\*&:]\+\)\=\<operator\>.*('
+                        \   ,
+                        \   'codeBlockBegin' : '^[ \t]*\/\*',
+                        \   'codeBlockEnd' : '^[ \t]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*\/[ \t]*$',
+                        \   'excludeRegExp' : '^[ \t]*\(\/\/\|#\|"\|rem\(ark\)\>\)'
+                        \     . '\|' . '^[ \t]*\(return\|if\|else\|elseif\|elif\|fi\|for_\=\(each\)\=\|while\|switch\|call\|echo\)\>'
+                        \     . '\|' . '^[ \t]*au\(tocmd\)\=\>'
+                        \     . '\|' . '^[ \t]*[nicxv]\(nore\)\=map\>'
+                        \   ,
+                        \ }
+        endif
     endif
 endi
 
@@ -171,12 +221,6 @@ endfunction
 
 " ============================================================
 function! s:getSetting()
-    if !exists('*ZFE2v')
-        echo 'ZFToc require othree/eregex.vim'
-        echo '    install it or supply custom wrapper function ZFE2v(pattern)'
-        return {}
-    endif
-
     let setting = get(b:, 'ZFTocFallback_setting', {})
     if empty(setting)
         let setting = get(b:, 'ZFToc_setting', {})
@@ -290,7 +334,7 @@ function! s:toc(setting, ...)
         endif
         let wildignoreSaved = &wildignore
         noautocmd let &wildignore = ''
-        execute 'silent lvimgrep /' . ZFE2v(t) . '/j %'
+        execute 'silent lvimgrep /' . ZFTocE2v(t) . '/j %'
         noautocmd let &wildignore = wildignoreSaved
     catch /E480/
         redraw!
@@ -304,9 +348,9 @@ function! s:toc(setting, ...)
     let loclist = getloclist(0)
     if len(get(a:setting, 'codeBlockBegin', '')) > 0
         let codeBlockFlag = 0
-        let codeBlockBegin = ZFE2v(get(a:setting, 'codeBlockBegin', ''))
-        let codeBlockEnd = ZFE2v(get(a:setting, 'codeBlockEnd', ''))
-        let excludeRegExp = ZFE2v(get(a:setting, 'excludeRegExp', ''))
+        let codeBlockBegin = ZFTocE2v(get(a:setting, 'codeBlockBegin', ''))
+        let codeBlockEnd = ZFTocE2v(get(a:setting, 'codeBlockEnd', ''))
+        let excludeRegExp = ZFTocE2v(get(a:setting, 'excludeRegExp', ''))
         let i = 0
         let range = len(loclist)
         while i < range
@@ -359,10 +403,10 @@ function! s:toc(setting, ...)
     lopen 25
     setlocal modifiable
     let Fn_titleInfoGetter = get(a:setting, 'titleInfoGetter', '')
-    let titleLevelRegExpMatch = ZFE2v(get(a:setting, 'titleLevelRegExpMatch', ''))
-    let titleLevelRegExpReplace = ZFE2v(get(a:setting, 'titleLevelRegExpReplace', ''))
-    let titleNameRegExpMatch = ZFE2v(get(a:setting, 'titleNameRegExpMatch', ''))
-    let titleNameRegExpReplace = ZFE2v(get(a:setting, 'titleNameRegExpReplace', ''))
+    let titleLevelRegExpMatch = ZFTocE2v(get(a:setting, 'titleLevelRegExpMatch', ''))
+    let titleLevelRegExpReplace = ZFTocE2v(get(a:setting, 'titleLevelRegExpReplace', ''))
+    let titleNameRegExpMatch = ZFTocE2v(get(a:setting, 'titleNameRegExpMatch', ''))
+    let titleNameRegExpReplace = ZFTocE2v(get(a:setting, 'titleNameRegExpReplace', ''))
     for i in range(len(loclist))
         let d = loclist[i]
         if toc_line == 0
