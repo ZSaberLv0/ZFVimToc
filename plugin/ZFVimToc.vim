@@ -6,7 +6,11 @@ if exists('*E2v')
 endif
 
 if !exists('*ZFTocE2v')
-    function! ZFTocE2v(pattern)
+    " option: {
+    "   'fixE872' : 1/0,
+    " }
+    function! ZFTocE2v(pattern, ...)
+        let option = get(a:, 1, {})
         if match(a:pattern, '^\\[vVmM]') == 0
             return a:pattern
         endif
@@ -16,7 +20,7 @@ if !exists('*ZFTocE2v')
         else
             let pattern = a:pattern
         endif
-        if get(g:, 'ZFToc_fixE872', 1)
+        if get(option, 'fixE872', get(g:, 'ZFToc_fixE872', 1))
             let pattern = substitute(pattern, '\\\\', '_ZFTOC_BS_', 'g')
             let pattern = substitute(pattern, '\\(', '\\%(', 'g')
             return substitute(pattern, '_ZFTOC_BS_', '\\\\', 'g')
@@ -25,6 +29,8 @@ if !exists('*ZFTocE2v')
         endif
     endfunction
 endif
+
+let s:option_no_fixE872 = {'fixE872' : 0}
 
 " ============================================================
 function! ZFTocPatternMake(ft, titleToken, codeBlockBegin, codeBlockEnd)
@@ -403,10 +409,10 @@ function! s:toc(setting, ...)
     lopen 25
     setlocal modifiable
     let Fn_titleInfoGetter = get(a:setting, 'titleInfoGetter', '')
-    let titleLevelRegExpMatch = ZFTocE2v(get(a:setting, 'titleLevelRegExpMatch', ''))
-    let titleLevelRegExpReplace = ZFTocE2v(get(a:setting, 'titleLevelRegExpReplace', ''))
-    let titleNameRegExpMatch = ZFTocE2v(get(a:setting, 'titleNameRegExpMatch', ''))
-    let titleNameRegExpReplace = ZFTocE2v(get(a:setting, 'titleNameRegExpReplace', ''))
+    let titleLevelRegExpMatch = ZFTocE2v(get(a:setting, 'titleLevelRegExpMatch', ''), s:option_no_fixE872)
+    let titleLevelRegExpReplace = ZFTocE2v(get(a:setting, 'titleLevelRegExpReplace', ''), s:option_no_fixE872)
+    let titleNameRegExpMatch = ZFTocE2v(get(a:setting, 'titleNameRegExpMatch', ''), s:option_no_fixE872)
+    let titleNameRegExpReplace = ZFTocE2v(get(a:setting, 'titleNameRegExpReplace', ''), s:option_no_fixE872)
     for i in range(len(loclist))
         let d = loclist[i]
         if toc_line == 0
