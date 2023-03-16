@@ -12,7 +12,7 @@ or [buy me a coffee](https://github.com/ZSaberLv0/ZSaberLv0)
 
     ```
     Plugin 'ZSaberLv0/ZFVimToc'
-    Plugin 'othree/eregex.vim' " required
+    Plugin 'othree/eregex.vim' " optional, for perl style regexp
     ```
 
 1. use `<leader>vt` or `:ZFToc` to view a TOC
