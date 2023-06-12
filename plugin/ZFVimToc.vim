@@ -69,10 +69,10 @@ if !exists('g:ZFToc_setting')
         "     class
         "     public static final interface
         "
-        " ^[ \t]*(public|protected|private|virtual|static|inline|extern|def(ine)?|func(tion)?)[a-z0-9_ \*<>:!\?]+\(
+        " ^[ \t]*(public|protected|private|virtual|static|inline|extern|def(ine)?|func(tion)?)[a-z0-9_ \*<>:#!\?]+\(
         "     public func(
         "
-        " ^[a-z_].*=[ \t]*(fun|(func(tion)?))?[ \t]*\([a-z0-9_ ,:!\?]*\)[ \t]*([\-=]>)?[ \t\r\n]*\{
+        " ^[a-z_].*=[ \t]*(fun|(func(tion)?))?[ \t]*\([a-z0-9_ ,:#!\?]*\)[ \t]*([\-=]>)?[ \t\r\n]*\{
         "     abc = func(xx) {
         "     abc = (xxx) => {
         "
@@ -84,16 +84,16 @@ if !exists('g:ZFToc_setting')
         "     abc &abc::abc#xyz(
         "     abc *abc::abc#xyz(
         "
-        " ^[ \t]*([a-z_][a-z0-9_ \t<>\*&:]+)?\<operator\>.*\(
+        " ^[ \t]*([a-z_][a-z0-9_ \t<>\*&:#]+)?\<operator\>.*\(
         "     abc abc::operator xxx(
         if exists('*ZFE2v')
             let g:ZFToc_setting['*'] = {
                         \   'titleRegExp' : '^[ \t]*(public|protected|private|static|final)*[ \t]*(class|interface|protocol|abstract)\>'
-                        \     . '|' . '^[ \t]*(public|protected|private|virtual|static|inline|extern|def(ine)?|func(tion)?)[a-z0-9_ \*<>:!\?]+\('
-                        \     . '|' . '^[a-z_].*=[ \t]*(fun|(func(tion)?))?[ \t]*\([a-z0-9_ ,:!\?]*\)[ \t]*([\-=]>)?[ \t\r\n]*\{'
+                        \     . '|' . '^[ \t]*(public|protected|private|virtual|static|inline|extern|def(ine)?|func(tion)?)[a-z0-9_ \*<>:#!\?]+\('
+                        \     . '|' . '^[a-z_].*=[ \t]*(fun|(func(tion)?))?[ \t]*\([a-z0-9_ ,:#!\?]*\)[ \t]*([\-=]>)?[ \t\r\n]*\{'
                         \     . '|' . '^[ \t]*[a-z0-9_]+[ \t]*\([^!;=\(\)]*\)[ \t\r\n]*\{'
                         \     . '|' . '^[ \t]*[a-z_][a-z0-9_ <>\*&]+[ \t]+[<>\*&]*[a-z_][a-z0-9_:#]+[ \t]*\('
-                        \     . '|' . '^[ \t]*([a-z_][a-z0-9_ \t<>\*&:]+)?\<operator\>.*\('
+                        \     . '|' . '^[ \t]*([a-z_][a-z0-9_ \t<>\*&:#]+)?\<operator\>.*\('
                         \   ,
                         \   'codeBlockBegin' : '^[ \t]*\/\*',
                         \   'codeBlockEnd' : '^[ \t]*\*+\/[ \t]*$|^[ \t]*\/\*.*\*\/[ \t]*$',
@@ -106,11 +106,11 @@ if !exists('g:ZFToc_setting')
         else
             let g:ZFToc_setting['*'] = {
                         \   'titleRegExp' : '^[ \t]*\(public\|protected\|private\|static\|final\)*[ \t]*\(class\|interface\|protocol\|abstract\)\>'
-                        \     . '\|' . '^[ \t]*\(public\|protected\|private\|virtual\|static\|inline\|extern\|def\(ine\)\=\|func\(tion\)\=\)[a-z0-9_ \*<>:!?]\+('
-                        \     . '\|' . '^[a-z_].*=[ \t]*\(func\(tion\)\=\)\=[ \t]*([a-z0-9_ ,:!?]*)[ \t]*\([\-=]>\)\=[ \t\r\n]*{'
+                        \     . '\|' . '^[ \t]*\(public\|protected\|private\|virtual\|static\|inline\|extern\|def\(ine\)\=\|func\(tion\)\=\)[a-z0-9_ \*<>:#!?]\+('
+                        \     . '\|' . '^[a-z_].*=[ \t]*\(func\(tion\)\=\)\=[ \t]*([a-z0-9_ ,:#!?]*)[ \t]*\([\-=]>\)\=[ \t\r\n]*{'
                         \     . '\|' . '^[ \t]*[a-z0-9_]\+[ \t]*([^!;=()]*)[ \t\r\n]*{'
                         \     . '\|' . '^[ \t]*[a-z_][a-z0-9_ <>\*&]\+[ \t]\+[<>\*&]*[a-z_][a-z0-9_:#]\+[ \t]*('
-                        \     . '\|' . '^[ \t]*\([a-z_][a-z0-9_ \t<>\*&:]\+\)\=\<operator\>.*('
+                        \     . '\|' . '^[ \t]*\([a-z_][a-z0-9_ \t<>\*&:#]\+\)\=\<operator\>.*('
                         \   ,
                         \   'codeBlockBegin' : '^[ \t]*\/\*',
                         \   'codeBlockEnd' : '^[ \t]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*\/[ \t]*$',
