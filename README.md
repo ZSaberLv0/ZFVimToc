@@ -47,7 +47,9 @@ you may add config for your own filetype
 
 ```
 let g:ZFToc_setting['markdown'] = {
-            \     'titleRegExp' : '^[ \t]*[#]+.*$',
+            \     'titleRegExp' : {
+            \         '*' : '^[ \t]*[#]+.*$',
+            \     },
             \     'titleInfoGetter' : '',
             \     'titleLevelRegExpMatch' : '^[ \t]*([#]+).*$',
             \     'titleLevelRegExpReplace' : '\1',
@@ -55,7 +57,7 @@ let g:ZFToc_setting['markdown'] = {
             \     'titleNameRegExpReplace' : '\2',
             \     'codeBlockBegin' : '^[ \t]*```.*$',
             \     'codeBlockEnd' : '^[ \t]*```[ \t]*$',
-            \     'excludeRegExp' : '',
+            \     'excludeRegExp' : {},
             \ }
 ```
 
@@ -75,7 +77,15 @@ let g:ZFToc_setting['*'] = {...}
 
 patterns:
 
-* `titleRegExp` : required, regexp to match title
+* `titleRegExp` : required, regexp to match title, can be:
+    * pattern string
+    * a Dict or List contains each pattern for extra config,
+        this is convenient for more than one impl to extend existing setting
+
+        ```
+        autocmd User ZFToc_event_configUpdate let g:ZFToc_setting['*']['titleRegExp']['MyExtraImpl'] = 'my fancy title'
+        ```
+
 * `titleInfoGetter` : optional, `function(title, line)` to obtain title info to show in location window,
     if supplied, you should return a Dict that contains necessary info:
 
@@ -98,14 +108,15 @@ patterns:
     regexp to match code block,
     any contents inside the code block won't be considered as title,
     empty to disable this feature
-* `excludeRegExp` : optional, exclude lines that match this pattern
+* `excludeRegExp` : optional, exclude lines that match this pattern, has same pattern rule with `titleRegExp`
 
 
 about pattern regexp:
 
 * when [othree/eregex.vim](https://github.com/othree/eregex.vim) installed,
     we would use perl style regexp,
-    instead of vim's builtin regexp
+    instead of vim's builtin regexp,
+    this can be disabled by `let g:ZFVimToc_disableE2v = 1`
 
 
 # additional settings

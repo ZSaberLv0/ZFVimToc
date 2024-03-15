@@ -1,45 +1,124 @@
 
-if exists('*E2v')
-    function! ZFE2v(pattern)
-        return E2v(a:pattern)
-    endfunction
+if !exists('g:ZFToc_setting')
+    let g:ZFToc_setting = {}
 endif
 
-if !exists('*ZFTocE2v')
-    " option: {
-    "   'fixE872' : 1/0,
-    " }
-    function! ZFTocE2v(pattern, ...)
-        let option = get(a:, 1, {})
-        if match(a:pattern, '^\\[vVmM]') == 0
-            return a:pattern
-        endif
+function! s:defaultConfig()
+    if get(g:, 'ZFToc_markdown_enable', 1)
+                \ && empty(get(g:ZFToc_setting, 'markdown', {}))
+        call ZFTocConfigByPattern('markdown', '[#]', '^[ \t]*```.*$', '^[ \t]*```[ \t]*$')
+    endif
 
-        if exists('*ZFE2v')
-            let pattern = ZFE2v(a:pattern)
+    if get(g:, 'ZFToc_fallback_enable', 1)
+                \ && empty(get(g:ZFToc_setting, '*', {}))
+        " ^[ \t]*(public|protected|private|static|final)*[ \t]*(class|interface|protocol|abstract)\>
+        "     class
+        "     public static final interface
+        "
+        " ^[ \t]*(public|protected|private|virtual|static|inline|extern|def(ine)?|func(tion)?)[a-zA-Z0-9_ \*<>:#!\?]+\(
+        "     public func(
+        "
+        " ^[a-zA-Z_].*=[ \t]*(fun|(func(tion)?))?[ \t]*\([a-zA-Z0-9_ ,:#!\?]*\)[ \t]*([\-=]>)?[ \t\r\n]*\{
+        "     abc = func(xx) {
+        "     abc = (xxx) => {
+        "
+        " ^[ \t]*[a-zA-Z0-9_]+[ \t]*\([^!;=\(\)]*\)[ \t\r\n]*\{
+        "     abc(xxx) {
+        "
+        " ^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]+[ \t]+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]+[ \t]*\(
+        "     abc abc::abc#xyz(
+        "     abc &abc::abc#xyz(
+        "     abc *abc::abc#xyz(
+        "
+        " ^[ \t]*([a-zA-Z_][a-zA-Z0-9_ \t<>\*&:#]+)?\<operator\>.*\(
+        "     abc abc::operator xxx(
+        if s:hasE2v()
+            let g:ZFToc_setting['*'] = {
+                        \   'titleRegExp' : {
+                        \     '*' :     '^[ \t]*(public|protected|private|static|final)*[ \t]*(class|interface|protocol|abstract)\>'
+                        \       . '|' . '^[ \t]*(public|protected|private|virtual|static|inline|extern|def(ine)?|func(tion)?)[a-zA-Z0-9_ \*<>:#!\?]+\('
+                        \       . '|' . '^[a-zA-Z_].*=[ \t]*(fun|(func(tion)?))?[ \t]*\([a-zA-Z0-9_ ,:#!\?]*\)[ \t]*([\-=]>)?[ \t\r\n]*\{'
+                        \       . '|' . '^[ \t]*[a-zA-Z0-9_]+[ \t]*\([^!;=\(\)]*\)[ \t\r\n]*\{'
+                        \       . '|' . '^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]+[ \t]+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]+[ \t]*\('
+                        \       . '|' . '^[ \t]*([a-zA-Z_][a-zA-Z0-9_ \t<>\*&:#]+)?\<operator\>.*\('
+                        \       ,
+                        \   },
+                        \   'codeBlockBegin' : '^[ \t]*\/\*',
+                        \   'codeBlockEnd' : '^[ \t]*\*+\/[ \t]*$|^[ \t]*\/\*.*\*\/[ \t]*$',
+                        \   'excludeRegExp' : {
+                        \     '*' :     '^[ \t]*(\/\/|#|"|rem(ark)\>)'
+                        \       . '|' . '^[ \t]*(return|if|else|elseif|elif|fi|for_?(each)?|while|switch|call|echo)\>'
+                        \       . '|' . '^[ \t]*au(tocmd)?\>'
+                        \       . '|' . '^[ \t]*[nicxv](nore)?map\>'
+                        \       ,
+                        \   },
+                        \ }
         else
-            let pattern = a:pattern
+            let g:ZFToc_setting['*'] = {
+                        \   'titleRegExp' : {
+                        \     '*' :      '^[ \t]*\(public\|protected\|private\|static\|final\)*[ \t]*\(class\|interface\|protocol\|abstract\)\>'
+                        \       . '\|' . '^[ \t]*\(public\|protected\|private\|virtual\|static\|inline\|extern\|def\(ine\)\=\|func\(tion\)\=\)[a-zA-Z0-9_ \*<>:#!?]\+('
+                        \       . '\|' . '^[a-zA-Z_].*=[ \t]*\(func\(tion\)\=\)\=[ \t]*([a-zA-Z0-9_ ,:#!?]*)[ \t]*\([\-=]>\)\=[ \t\r\n]*{'
+                        \       . '\|' . '^[ \t]*[a-zA-Z0-9_]\+[ \t]*([^!;=()]*)[ \t\r\n]*{'
+                        \       . '\|' . '^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]\+[ \t]\+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]\+[ \t]*('
+                        \       . '\|' . '^[ \t]*\([a-zA-Z_][a-zA-Z0-9_ \t<>\*&:#]\+\)\=\<operator\>.*('
+                        \       ,
+                        \   },
+                        \   'codeBlockBegin' : '^[ \t]*\/\*',
+                        \   'codeBlockEnd' : '^[ \t]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*\/[ \t]*$',
+                        \   'excludeRegExp' : {
+                        \     '*' :      '^[ \t]*\(\/\/\|#\|"\|rem\(ark\)\>\)'
+                        \       . '\|' . '^[ \t]*\(return\|if\|else\|elseif\|elif\|fi\|for_\=\(each\)\=\|while\|switch\|call\|echo\)\>'
+                        \       . '\|' . '^[ \t]*au\(tocmd\)\=\>'
+                        \       . '\|' . '^[ \t]*[nicxv]\(nore\)\=map\>'
+                        \       ,
+                        \   },
+                        \ }
         endif
-        if get(option, 'fixE872', get(g:, 'ZFToc_fixE872', 1))
-            let pattern = substitute(pattern, '\\\\', '_ZFTOC_BS_', 'g')
-            let pattern = substitute(pattern, '\\(', '\\%(', 'g')
-            return substitute(pattern, '_ZFTOC_BS_', '\\\\', 'g')
+    endif
+endfunction
+
+function! s:hasE2v()
+    return !get(g:, 'ZFVimToc_disableE2v', 0) && exists('*E2v')
+endfunction
+
+" option: {
+"   'fixE872' : 1/0,
+"   'smartcase' : 1/0,
+" }
+function! ZFTocE2v(pattern, ...)
+    let option = get(a:, 1, {})
+    if s:hasE2v()
+        let pattern = E2v(a:pattern)
+    else
+        let pattern = a:pattern
+    endif
+    if get(option, 'fixE872', get(g:, 'ZFToc_fixE872', 1))
+        let pattern = substitute(pattern, '\\\\', '_ZFTOC_BS_', 'g')
+        let pattern = substitute(pattern, '\\(', '\\%(', 'g')
+        let pattern = substitute(pattern, '_ZFTOC_BS_', '\\\\', 'g')
+    endif
+    if !empty(pattern)
+                \ && get(option, 'smartcase', get(g:, 'ZFToc_smartcase', 1))
+                \ && match(pattern, '\c^\\c') < 0
+        if match(pattern, '\C[A-Z]') >= 0
+            let pattern = '\C' . pattern
         else
-            return pattern
+            let pattern = '\c' . pattern
         endif
-    endfunction
-endif
+    endif
+    return pattern
+endfunction
 
 let s:option_no_fixE872 = {'fixE872' : 0}
 
 " ============================================================
-function! ZFTocPatternMake(ft, titleToken, codeBlockBegin, codeBlockEnd)
-    if !exists('g:ZFToc_setting')
-        let g:ZFToc_setting = {}
-    endif
-    if exists('*ZFE2v')
+function! ZFTocConfigByPattern(ft, titleToken, codeBlockBegin, codeBlockEnd)
+    if s:hasE2v()
         let g:ZFToc_setting[a:ft] = {
-                    \     'titleRegExp' : '^[ \t]*' . a:titleToken . '+ .*$',
+                    \     'titleRegExp' : {
+                    \         '*' : '^[ \t]*' . a:titleToken . '+ .*$',
+                    \     },
                     \     'titleInfoGetter' : '',
                     \     'titleLevelRegExpMatch' : '^[ \t]*(' . a:titleToken . '+).*$',
                     \     'titleLevelRegExpReplace' : '\1',
@@ -50,7 +129,9 @@ function! ZFTocPatternMake(ft, titleToken, codeBlockBegin, codeBlockEnd)
                     \ }
     else
         let g:ZFToc_setting[a:ft] = {
-                    \     'titleRegExp' : '^[ \t]*' . a:titleToken . '\+ .*$',
+                    \     'titleRegExp' : {
+                    \         '*' : '^[ \t]*' . a:titleToken . '\+ .*$',
+                    \     },
                     \     'titleInfoGetter' : '',
                     \     'titleLevelRegExpMatch' : '^[ \t]*\(' . a:titleToken . '\+\).*$',
                     \     'titleLevelRegExpReplace' : '\1',
@@ -61,68 +142,6 @@ function! ZFTocPatternMake(ft, titleToken, codeBlockBegin, codeBlockEnd)
                     \ }
     endif
 endfunction
-if !exists('g:ZFToc_setting')
-    call ZFTocPatternMake('markdown', '[#]', '^[ \t]*```.*$', '^[ \t]*```[ \t]*$')
-
-    if get(g:, 'ZFToc_fallback_enable', 1)
-        " ^[ \t]*(public|protected|private|static|final)*[ \t]*(class|interface|protocol|abstract)\>
-        "     class
-        "     public static final interface
-        "
-        " ^[ \t]*(public|protected|private|virtual|static|inline|extern|def(ine)?|func(tion)?)[a-z0-9_ \*<>:#!\?]+\(
-        "     public func(
-        "
-        " ^[a-z_].*=[ \t]*(fun|(func(tion)?))?[ \t]*\([a-z0-9_ ,:#!\?]*\)[ \t]*([\-=]>)?[ \t\r\n]*\{
-        "     abc = func(xx) {
-        "     abc = (xxx) => {
-        "
-        " ^[ \t]*[a-z0-9_]+[ \t]*\([^!;=\(\)]*\)[ \t\r\n]*\{
-        "     abc(xxx) {
-        "
-        " ^[ \t]*[a-z_][a-z0-9_ <>\*&]+[ \t]+[<>\*&]*[a-z_][a-z0-9_:#]+[ \t]*\(
-        "     abc abc::abc#xyz(
-        "     abc &abc::abc#xyz(
-        "     abc *abc::abc#xyz(
-        "
-        " ^[ \t]*([a-z_][a-z0-9_ \t<>\*&:#]+)?\<operator\>.*\(
-        "     abc abc::operator xxx(
-        if exists('*ZFE2v')
-            let g:ZFToc_setting['*'] = {
-                        \   'titleRegExp' : '^[ \t]*(public|protected|private|static|final)*[ \t]*(class|interface|protocol|abstract)\>'
-                        \     . '|' . '^[ \t]*(public|protected|private|virtual|static|inline|extern|def(ine)?|func(tion)?)[a-z0-9_ \*<>:#!\?]+\('
-                        \     . '|' . '^[a-z_].*=[ \t]*(fun|(func(tion)?))?[ \t]*\([a-z0-9_ ,:#!\?]*\)[ \t]*([\-=]>)?[ \t\r\n]*\{'
-                        \     . '|' . '^[ \t]*[a-z0-9_]+[ \t]*\([^!;=\(\)]*\)[ \t\r\n]*\{'
-                        \     . '|' . '^[ \t]*[a-z_][a-z0-9_ <>\*&]+[ \t]+[<>\*&]*[a-z_][a-z0-9_:#]+[ \t]*\('
-                        \     . '|' . '^[ \t]*([a-z_][a-z0-9_ \t<>\*&:#]+)?\<operator\>.*\('
-                        \   ,
-                        \   'codeBlockBegin' : '^[ \t]*\/\*',
-                        \   'codeBlockEnd' : '^[ \t]*\*+\/[ \t]*$|^[ \t]*\/\*.*\*\/[ \t]*$',
-                        \   'excludeRegExp' : '^[ \t]*(\/\/|#|"|rem(ark)\>)'
-                        \     . '|' . '^[ \t]*(return|if|else|elseif|elif|fi|for_?(each)?|while|switch|call|echo)\>'
-                        \     . '|' . '^[ \t]*au(tocmd)?\>'
-                        \     . '|' . '^[ \t]*[nicxv](nore)?map\>'
-                        \   ,
-                        \ }
-        else
-            let g:ZFToc_setting['*'] = {
-                        \   'titleRegExp' : '^[ \t]*\(public\|protected\|private\|static\|final\)*[ \t]*\(class\|interface\|protocol\|abstract\)\>'
-                        \     . '\|' . '^[ \t]*\(public\|protected\|private\|virtual\|static\|inline\|extern\|def\(ine\)\=\|func\(tion\)\=\)[a-z0-9_ \*<>:#!?]\+('
-                        \     . '\|' . '^[a-z_].*=[ \t]*\(func\(tion\)\=\)\=[ \t]*([a-z0-9_ ,:#!?]*)[ \t]*\([\-=]>\)\=[ \t\r\n]*{'
-                        \     . '\|' . '^[ \t]*[a-z0-9_]\+[ \t]*([^!;=()]*)[ \t\r\n]*{'
-                        \     . '\|' . '^[ \t]*[a-z_][a-z0-9_ <>\*&]\+[ \t]\+[<>\*&]*[a-z_][a-z0-9_:#]\+[ \t]*('
-                        \     . '\|' . '^[ \t]*\([a-z_][a-z0-9_ \t<>\*&:#]\+\)\=\<operator\>.*('
-                        \   ,
-                        \   'codeBlockBegin' : '^[ \t]*\/\*',
-                        \   'codeBlockEnd' : '^[ \t]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*\/[ \t]*$',
-                        \   'excludeRegExp' : '^[ \t]*\(\/\/\|#\|"\|rem\(ark\)\>\)'
-                        \     . '\|' . '^[ \t]*\(return\|if\|else\|elseif\|elif\|fi\|for_\=\(each\)\=\|while\|switch\|call\|echo\)\>'
-                        \     . '\|' . '^[ \t]*au\(tocmd\)\=\>'
-                        \     . '\|' . '^[ \t]*[nicxv]\(nore\)\=map\>'
-                        \   ,
-                        \ }
-        endif
-    endif
-endi
 
 
 " ============================================================
@@ -188,6 +207,10 @@ function! ZFTocGeneric(autoStart)
     return ''
 endfunction
 
+augroup ZFToc_configUpdate_augroup
+    autocmd!
+    autocmd User ZFToc_event_configUpdate silent
+augroup END
 function! ZFToc(...)
     if empty(expand('%'))
         redraw!
@@ -195,6 +218,8 @@ function! ZFToc(...)
         return []
     endif
 
+    call s:defaultConfig()
+    doautocmd User ZFToc_event_configUpdate
     let setting = s:getSetting()
     let pattern = get(a:, 1, '')
     if empty(setting) || !empty(pattern)
@@ -224,6 +249,33 @@ function! ZFTocReset()
     endif
 endfunction
 
+function! ZFTocPattern(pattern)
+    let orPattern = (s:hasE2v() ? '|' : '\|')
+
+    if type(a:pattern) == type('')
+        return a:pattern
+    elseif type(a:pattern) == type({})
+        let ret = ''
+        for p in values(a:pattern)
+            if type(p) == type('')
+                let t = p
+            elseif type(p) == type([])
+                let t = join(p, orPattern)
+            else
+                continue
+            endif
+            if ret != ''
+                let ret .= orPattern
+            endif
+            let ret .= t
+        endfor
+        return ret
+    elseif type(a:pattern) == type([])
+        return join(a:pattern, orPattern)
+    else
+        return ''
+    endif
+endfunction
 
 " ============================================================
 function! s:getSetting()
@@ -251,7 +303,7 @@ function! s:prepareSetting(...)
         if !empty(get(b:, 'ZFTocFallback_loclist', [])) || empty(get(b:, 'ZFTocFallback_setting', {}))
             call inputsave()
             let pattern = input('[ZFToc] title pattern: ',
-                        \ get(get(b:, 'ZFTocFallback_setting', {}), 'titleRegExp', ''))
+                        \ ZFTocPattern(get(get(b:, 'ZFTocFallback_setting', {}), 'titleRegExp', '')))
             call inputrestore()
         else
             unlet pattern
@@ -290,73 +342,48 @@ function! s:toc(setting, ...)
         unlet b:ZFToc_loclist
     endif
 
-    try
-        if len(get(a:setting, 'codeBlockBegin', '')) > 0
-                    \ && len(get(a:setting, 'codeBlockEnd', '')) > 0
-            if match(a:setting['titleRegExp'], '^\\[vVmM]') == 0
-                        \ || match(a:setting['codeBlockBegin'], '^\\[vVmM]') == 0
-                        \ || match(a:setting['codeBlockEnd'], '^\\[vVmM]') == 0
-                if match(a:setting['titleRegExp'], '^\\[vVmM]') == 0
-                    let t = matchstr(a:setting['titleRegExp'], '^\\[vVmM]')
-                    let titleRegExp = strpart(a:setting['titleRegExp'], 2)
-                endif
-                if match(a:setting['codeBlockBegin'], '^\\[vVmM]') == 0
-                    let t = matchstr(a:setting['codeBlockBegin'], '^\\[vVmM]')
-                    let codeBlockBegin = strpart(a:setting['codeBlockBegin'], 2)
-                endif
-                if match(a:setting['codeBlockEnd'], '^\\[vVmM]') == 0
-                    let t = matchstr(a:setting['codeBlockEnd'], '^\\[vVmM]')
-                    let codeBlockEnd = strpart(a:setting['codeBlockEnd'], 2)
-                endif
-
-                if t == '\v'
-                    let tL = '('
-                    let tR = ')'
-                    let tS = '|'
-                elseif t == '\V'
-                    let tL = '\('
-                    let tR = '\)'
-                    let tS = '\|'
-                elseif t == '\m'
-                    let tL = '\('
-                    let tR = '\)'
-                    let tS = '\|'
-                elseif t == '\M'
-                    let tL = '\('
-                    let tR = '\)'
-                    let tS = '\|'
-                endif
-
-                let t .=      tL . titleRegExp . tR
-                let t .= tS . tL . codeBlockBegin . tR
-                let t .= tS . tL . codeBlockEnd . tR
-            else
-                let t = '(' . a:setting['titleRegExp'] . ')'
-                let t .= '|(' . a:setting['codeBlockBegin'] . ')'
-                let t .= '|(' . a:setting['codeBlockEnd'] . ')'
-            endif
+    if len(get(a:setting, 'codeBlockBegin', '')) > 0
+                \ && len(get(a:setting, 'codeBlockEnd', '')) > 0
+        if s:hasE2v()
+            let t = '(' . ZFTocPattern(a:setting['titleRegExp']) . ')'
+            let t .= '|(' . a:setting['codeBlockBegin'] . ')'
+            let t .= '|(' . a:setting['codeBlockEnd'] . ')'
         else
-            let t = a:setting['titleRegExp']
+            let t = '\(' . ZFTocPattern(a:setting['titleRegExp']) . '\)'
+            let t .= '\|\(' . a:setting['codeBlockBegin'] . '\)'
+            let t .= '\|\(' . a:setting['codeBlockEnd'] . '\)'
         endif
-        let wildignoreSaved = &wildignore
-        noautocmd let &wildignore = ''
-        execute 'silent lvimgrep /' . ZFTocE2v(t) . '/j %'
-        noautocmd let &wildignore = wildignoreSaved
+    else
+        let t = ZFTocPattern(a:setting['titleRegExp'])
+    endif
+    let wildignoreSaved = &wildignore
+    let ignorecaseSaved = &ignorecase
+    noautocmd let &wildignore = ''
+    let success = 1
+    let pattern = ZFTocE2v(t)
+    try
+        execute 'silent lvimgrep /' . pattern . '/j %'
     catch /E480/
         redraw!
         echom "[ZFToc] no titles."
-        return []
+        let success = 0
     catch
+        redraw!
         echom v:exception
-        return []
+        let success = 0
     endtry
+    noautocmd let &ignorecase = ignorecaseSaved
+    noautocmd let &wildignore = wildignoreSaved
+    if !success
+        return []
+    endif
 
     let loclist = getloclist(0)
     if len(get(a:setting, 'codeBlockBegin', '')) > 0
         let codeBlockFlag = 0
         let codeBlockBegin = ZFTocE2v(get(a:setting, 'codeBlockBegin', ''))
         let codeBlockEnd = ZFTocE2v(get(a:setting, 'codeBlockEnd', ''))
-        let excludeRegExp = ZFTocE2v(get(a:setting, 'excludeRegExp', ''))
+        let excludeRegExp = ZFTocE2v(ZFTocPattern(get(a:setting, 'excludeRegExp', '')))
         let i = 0
         let range = len(loclist)
         while i < range
