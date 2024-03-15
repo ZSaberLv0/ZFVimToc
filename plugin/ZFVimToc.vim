@@ -413,24 +413,28 @@ function! s:toc(setting, ...)
             endif
             let i += 1
         endwhile
-        call setloclist(0, loclist)
     endif
     if empty(loclist)
         redraw!
         echom "[ZFToc] no titles."
         return []
     endif
+    let toc_line = s:findTocLine(loclist, line('.'))
+    call setloclist(0, loclist)
+    try
+        call setloclist(0, [], 'a', {
+                    \   'idx' : toc_line
+                    \ })
+    catch
+    endtry
 
     let b:ZFToc_loclist = loclist
-
     if !autoOpen
         return loclist
     endif
 
     call s:fold(loclist)
 
-    let cur_line = line(".")
-    let toc_line = 0
     lopen 25
     if exists('*ZF_VimTxtHighlightToggle') && get(g:, 'ZFToc_highlight', 1)
         set syntax=zftxt
@@ -443,13 +447,6 @@ function! s:toc(setting, ...)
     let titleNameRegExpReplace = ZFTocE2v(get(a:setting, 'titleNameRegExpReplace', ''), {'fixE872' : 0, 'smartcase' : 0})
     for i in range(len(loclist))
         let d = loclist[i]
-        if toc_line == 0
-            if d['lnum'] == cur_line
-                let toc_line = i + 1
-            elseif d['lnum'] > cur_line
-                let toc_line = i
-            endif
-        endif
         if !empty(Fn_titleInfoGetter)
             let info = Fn_titleInfoGetter(d['text'], d['lnum'])
             if !empty(get(info, 'text', ''))
@@ -471,15 +468,30 @@ function! s:toc(setting, ...)
         endif
         call setline(i + 1, repeat('    ', level) . d['text'])
     endfor
-    if toc_line == 0 && !empty(loclist)
-        let toc_line = len(loclist)
-    endif
 
     setlocal nomodified
     setlocal nomodifiable
     call cursor(toc_line, 0)
 
     return loclist
+endfunction
+
+function! s:findTocLine(loclist, cur_line)
+    let toc_line = 0
+    for i in range(len(a:loclist))
+        let d = a:loclist[i]
+        if toc_line == 0
+            if d['lnum'] == a:cur_line
+                let toc_line = i + 1
+            elseif d['lnum'] > a:cur_line
+                let toc_line = i
+            endif
+        endif
+    endfor
+    if toc_line == 0 && !empty(a:loclist)
+        let toc_line = len(a:loclist)
+    endif
+    return toc_line
 endfunction
 
 function! s:fold(loclist)
