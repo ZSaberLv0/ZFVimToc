@@ -110,8 +110,6 @@ function! ZFTocE2v(pattern, ...)
     return pattern
 endfunction
 
-let s:option_no_fixE872 = {'fixE872' : 0}
-
 " ============================================================
 function! ZFTocConfigByPattern(ft, titleToken, codeBlockBegin, codeBlockEnd)
     if s:hasE2v()
@@ -434,12 +432,15 @@ function! s:toc(setting, ...)
     let cur_line = line(".")
     let toc_line = 0
     lopen 25
+    if exists('*ZF_VimTxtHighlightToggle') && get(g:, 'ZFToc_highlight', 1)
+        set syntax=zftxt
+    endif
     setlocal modifiable
     let Fn_titleInfoGetter = get(a:setting, 'titleInfoGetter', '')
-    let titleLevelRegExpMatch = ZFTocE2v(get(a:setting, 'titleLevelRegExpMatch', ''), s:option_no_fixE872)
-    let titleLevelRegExpReplace = ZFTocE2v(get(a:setting, 'titleLevelRegExpReplace', ''), s:option_no_fixE872)
-    let titleNameRegExpMatch = ZFTocE2v(get(a:setting, 'titleNameRegExpMatch', ''), s:option_no_fixE872)
-    let titleNameRegExpReplace = ZFTocE2v(get(a:setting, 'titleNameRegExpReplace', ''), s:option_no_fixE872)
+    let titleLevelRegExpMatch = ZFTocE2v(get(a:setting, 'titleLevelRegExpMatch', ''), {'fixE872' : 0})
+    let titleLevelRegExpReplace = ZFTocE2v(get(a:setting, 'titleLevelRegExpReplace', ''), {'fixE872' : 0, 'smartcase' : 0})
+    let titleNameRegExpMatch = ZFTocE2v(get(a:setting, 'titleNameRegExpMatch', ''), {'fixE872' : 0})
+    let titleNameRegExpReplace = ZFTocE2v(get(a:setting, 'titleNameRegExpReplace', ''), {'fixE872' : 0, 'smartcase' : 0})
     for i in range(len(loclist))
         let d = loclist[i]
         if toc_line == 0
