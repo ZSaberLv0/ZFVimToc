@@ -205,10 +205,6 @@ function! ZFTocGeneric(autoStart)
     return ''
 endfunction
 
-augroup ZFToc_configUpdate_augroup
-    autocmd!
-    autocmd User ZFToc_event_configUpdate silent
-augroup END
 function! ZFToc(...)
     if empty(expand('%'))
         redraw!
@@ -274,6 +270,10 @@ function! ZFTocPattern(pattern)
 endfunction
 
 " ============================================================
+augroup ZFToc_configUpdate_augroup
+    autocmd!
+    autocmd User ZFToc_event_configUpdate silent
+augroup END
 function! s:getSetting()
     call s:defaultConfig()
     doautocmd User ZFToc_event_configUpdate
