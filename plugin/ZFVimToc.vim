@@ -216,8 +216,6 @@ function! ZFToc(...)
         return []
     endif
 
-    call s:defaultConfig()
-    doautocmd User ZFToc_event_configUpdate
     let setting = s:getSetting()
     let pattern = get(a:, 1, '')
     if empty(setting) || !empty(pattern)
@@ -277,6 +275,9 @@ endfunction
 
 " ============================================================
 function! s:getSetting()
+    call s:defaultConfig()
+    doautocmd User ZFToc_event_configUpdate
+
     let setting = get(b:, 'ZFTocFallback_setting', {})
     if empty(setting)
         let setting = get(b:, 'ZFToc_setting', {})
