@@ -18,6 +18,9 @@ function! s:defaultConfig()
         " ^[ \t]*(public|protected|private|virtual|static|inline|extern|def(ine)?|func(tion)?)[a-zA-Z0-9_ \*<>:#!\?]+\(
         "     public func(
         "
+        " ^[a-zA-Z_][a-zA-Z0-9_ \t\*<>:#!\?]+[ \t][a-zA-Z0-9_ \t\*<>:#!\?]+\(
+        "     RetType func(
+        "
         " ^[a-zA-Z_].*=[ \t]*(fun|(func(tion)?))?[ \t]*\([a-zA-Z0-9_ ,:#!\?]*\)[ \t]*([\-=]>)?[ \t\r\n]*\{
         "     abc = func(xx) {
         "     abc = (xxx) => {
@@ -37,6 +40,7 @@ function! s:defaultConfig()
                         \   'titleRegExp' : {
                         \     '*' :     '^[ \t]*(public|protected|private|static|final)*[ \t]*(class|interface|protocol|abstract)\>'
                         \       . '|' . '^[ \t]*(public|protected|private|virtual|static|inline|extern|def(ine)?|func(tion)?)[a-zA-Z0-9_ \*<>:#!\?]+\('
+                        \       . '|' . '^[a-zA-Z_][a-zA-Z0-9_ \t\*<>:#!\?]+[ \t][a-zA-Z0-9_ \t\*<>:#!\?]+\('
                         \       . '|' . '^[a-zA-Z_].*=[ \t]*(fun|(func(tion)?))?[ \t]*\([a-zA-Z0-9_ ,:#!\?]*\)[ \t]*([\-=]>)?[ \t\r\n]*\{'
                         \       . '|' . '^[ \t]*[a-zA-Z0-9_]+[ \t]*\([^!;=\(\)]*\)[ \t\r\n]*\{'
                         \       . '|' . '^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]+[ \t]+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]+[ \t]*\('
@@ -50,6 +54,7 @@ function! s:defaultConfig()
                         \       . '|' . '^[ \t]*(return|if|else|elseif|elif|fi|for_?(each)?|while|switch|call|echo)\>'
                         \       . '|' . '^[ \t]*au(tocmd)?\>'
                         \       . '|' . '^[ \t]*[nicxv](nore)?map\>'
+                        \       . '|' . '\\$'
                         \       ,
                         \   },
                         \ }
@@ -58,6 +63,7 @@ function! s:defaultConfig()
                         \   'titleRegExp' : {
                         \     '*' :      '^[ \t]*\(public\|protected\|private\|static\|final\)*[ \t]*\(class\|interface\|protocol\|abstract\)\>'
                         \       . '\|' . '^[ \t]*\(public\|protected\|private\|virtual\|static\|inline\|extern\|def\(ine\)\=\|func\(tion\)\=\)[a-zA-Z0-9_ \*<>:#!?]\+('
+                        \       . '\|' . '^[a-zA-Z_][a-zA-Z0-9_ \t\*<>:#!?]\+[ \t][a-zA-Z0-9_ \t\*<>:#!?]\+('
                         \       . '\|' . '^[a-zA-Z_].*=[ \t]*\(func\(tion\)\=\)\=[ \t]*([a-zA-Z0-9_ ,:#!?]*)[ \t]*\([\-=]>\)\=[ \t\r\n]*{'
                         \       . '\|' . '^[ \t]*[a-zA-Z0-9_]\+[ \t]*([^!;=()]*)[ \t\r\n]*{'
                         \       . '\|' . '^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]\+[ \t]\+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]\+[ \t]*('
@@ -71,6 +77,7 @@ function! s:defaultConfig()
                         \       . '\|' . '^[ \t]*\(return\|if\|else\|elseif\|elif\|fi\|for_\=\(each\)\=\|while\|switch\|call\|echo\)\>'
                         \       . '\|' . '^[ \t]*au\(tocmd\)\=\>'
                         \       . '\|' . '^[ \t]*[nicxv]\(nore\)\=map\>'
+                        \       . '\|' . '\\$'
                         \       ,
                         \   },
                         \ }
