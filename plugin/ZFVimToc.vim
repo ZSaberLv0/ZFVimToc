@@ -54,6 +54,8 @@ function! s:defaultConfig()
                         \       . '|' . '^[ \t]*(return|if|else|elseif|elif|fi|for_?(each)?|while|switch|call|echo)\>'
                         \       . '|' . '^[ \t]*au(tocmd)?\>'
                         \       . '|' . '^[ \t]*[nicxv](nore)?map\>'
+                        \       . '|' . '^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]+[ \t]+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]+[ \t]*\('
+                        \             . '([ \t]*[a-zA-Z0-9_]+([ \t]*,[ \t]*[a-zA-Z0-9_]+)*[ \t]*)?\)[ \t]*(;|$)'
                         \       . '|' . '\\$'
                         \       ,
                         \   },
@@ -77,6 +79,8 @@ function! s:defaultConfig()
                         \       . '\|' . '^[ \t]*\(return\|if\|else\|elseif\|elif\|fi\|for_\=\(each\)\=\|while\|switch\|call\|echo\)\>'
                         \       . '\|' . '^[ \t]*au\(tocmd\)\=\>'
                         \       . '\|' . '^[ \t]*[nicxv]\(nore\)\=map\>'
+                        \       . '\|' . '^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]\+[ \t]\+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]\+[ \t]*('
+                        \              . '\([ \t]*[a-zA-Z0-9_]\+\([ \t]*,[ \t]*[a-zA-Z0-9_]\+\)*[ \t]*\)\=)[ \t]*\(;\|$\)'
                         \       . '\|' . '\\$'
                         \       ,
                         \   },
