@@ -405,7 +405,7 @@ function! s:toc(setting, ...)
                 let i -= 1
                 let range -= 1
             elseif codeBlockBeginMatch >= 0
-                        \ && (codeBlockEndMatch < 0 || codeBlockBeginMatch != codeBlockEndMatch)
+                        \ && (codeBlockFlag <= 0 || codeBlockEndMatch < 0 || codeBlockBeginMatch != codeBlockEndMatch)
                 let codeBlockFlag += 1
                 call remove(loclist, i)
                 let i -= 1
