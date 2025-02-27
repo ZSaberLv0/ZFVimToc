@@ -447,7 +447,7 @@ function! s:toc(setting, ...)
 
     call s:fold(loclist)
 
-    lopen 25
+    execute 'lopen ' . get(g:, 'ZFToc_height', 60)
     if exists('*ZF_VimTxtHighlightToggle') && get(g:, 'ZFToc_highlight', 1)
         set syntax=zftxt
     endif
