@@ -18,9 +18,6 @@ function! s:defaultConfig()
         " ^[ \t]*(public|protected|private|virtual|static|inline|extern|def(ine)?|func(tion)?)[a-zA-Z0-9_ \*<>:#!\?]+\(
         "     public func(
         "
-        " ^[a-zA-Z_][a-zA-Z0-9_ \t\*<>:#!\?]+[ \t][a-zA-Z0-9_ \t\*<>:#!\?]+\(
-        "     RetType func(
-        "
         " ^[a-zA-Z_].*=[ \t]*(fun|(func(tion)?))?[ \t]*\([a-zA-Z0-9_ ,:#!\?]*\)[ \t]*([\-=]>)?[ \t\r\n]*\{
         "     abc = func(xx) {
         "     abc = (xxx) => {
@@ -35,12 +32,17 @@ function! s:defaultConfig()
         "
         " ^[ \t]*([a-zA-Z_][a-zA-Z0-9_ \t<>\*&:#]+)?\<operator\>.*\(
         "     abc abc::operator xxx(
+        "
+        " exclude:
+        "
+        " ^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]+[ \t]+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]+[ \t]*\((.*, *)*['"]
+        "     xxx xxx('xx')
+        "     xxx xxx(aa, 'xx')
         if s:hasE2v()
             let g:ZFToc_setting['*'] = {
                         \   'titleRegExp' : {
                         \     '*' :     '^[ \t]*(public|protected|private|static|final)*[ \t]*(class|interface|protocol|abstract)\>'
                         \       . '|' . '^[ \t]*(public|protected|private|virtual|static|inline|extern|def(ine)?|func(tion)?)[a-zA-Z0-9_ \*<>:#!\?]+\('
-                        \       . '|' . '^[a-zA-Z_][a-zA-Z0-9_ \t\*<>:#!\?]+[ \t][a-zA-Z0-9_ \t\*<>:#!\?]+\('
                         \       . '|' . '^[a-zA-Z_].*=[ \t]*(fun|(func(tion)?))?[ \t]*\([a-zA-Z0-9_ ,:#!\?]*\)[ \t]*([\-=]>)?[ \t\r\n]*\{'
                         \       . '|' . '^[ \t]*[a-zA-Z0-9_]+[ \t]*\([^!;=\(\)]*\)[ \t\r\n]*\{'
                         \       . '|' . '^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]+[ \t]+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]+[ \t]*\('
@@ -51,11 +53,10 @@ function! s:defaultConfig()
                         \   'codeBlockEnd' : '^[ \t]*\*+\/[ \t]*$|^[ \t]*\/\*.*\*\/[ \t]*$',
                         \   'excludeRegExp' : {
                         \     '*' :     '^[ \t]*(\/\/|#|"|rem(ark)\>)'
-                        \       . '|' . '^[ \t]*(return|if|else|elseif|elif|fi|for_?(each)?|while|switch|call|echo)\>'
+                        \       . '|' . '^[ \t]*(return|if|else|elseif|elif|fi|for_?(each)?|while|switch|call|echo|typedef)\>'
                         \       . '|' . '^[ \t]*au(tocmd)?\>'
                         \       . '|' . '^[ \t]*[nicxv](nore)?map\>'
-                        \       . '|' . '^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]+[ \t]+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]+[ \t]*\('
-                        \             . '([ \t]*[a-zA-Z0-9_]+([ \t]*,[ \t]*[a-zA-Z0-9_]+)*[ \t]*)?\)[ \t]*(;|$)'
+                        \       . '|' . '^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]+[ \t]+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]+[ \t]*\((.*, *)*[''"]'
                         \       . '|' . '\\$'
                         \       ,
                         \   },
@@ -65,7 +66,6 @@ function! s:defaultConfig()
                         \   'titleRegExp' : {
                         \     '*' :      '^[ \t]*\(public\|protected\|private\|static\|final\)*[ \t]*\(class\|interface\|protocol\|abstract\)\>'
                         \       . '\|' . '^[ \t]*\(public\|protected\|private\|virtual\|static\|inline\|extern\|def\(ine\)\=\|func\(tion\)\=\)[a-zA-Z0-9_ \*<>:#!?]\+('
-                        \       . '\|' . '^[a-zA-Z_][a-zA-Z0-9_ \t\*<>:#!?]\+[ \t][a-zA-Z0-9_ \t\*<>:#!?]\+('
                         \       . '\|' . '^[a-zA-Z_].*=[ \t]*\(func\(tion\)\=\)\=[ \t]*([a-zA-Z0-9_ ,:#!?]*)[ \t]*\([\-=]>\)\=[ \t\r\n]*{'
                         \       . '\|' . '^[ \t]*[a-zA-Z0-9_]\+[ \t]*([^!;=()]*)[ \t\r\n]*{'
                         \       . '\|' . '^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]\+[ \t]\+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]\+[ \t]*('
@@ -76,11 +76,10 @@ function! s:defaultConfig()
                         \   'codeBlockEnd' : '^[ \t]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*\/[ \t]*$',
                         \   'excludeRegExp' : {
                         \     '*' :      '^[ \t]*\(\/\/\|#\|"\|rem\(ark\)\>\)'
-                        \       . '\|' . '^[ \t]*\(return\|if\|else\|elseif\|elif\|fi\|for_\=\(each\)\=\|while\|switch\|call\|echo\)\>'
+                        \       . '\|' . '^[ \t]*\(return\|if\|else\|elseif\|elif\|fi\|for_\=\(each\)\=\|while\|switch\|call\|echo\|typedef\)\>'
                         \       . '\|' . '^[ \t]*au\(tocmd\)\=\>'
                         \       . '\|' . '^[ \t]*[nicxv]\(nore\)\=map\>'
-                        \       . '\|' . '^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]\+[ \t]\+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]\+[ \t]*('
-                        \              . '\([ \t]*[a-zA-Z0-9_]\+\([ \t]*,[ \t]*[a-zA-Z0-9_]\+\)*[ \t]*\)\=)[ \t]*\(;\|$\)'
+                        \       . '\|' . '^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]\+[ \t]\+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]\+[ \t]*(\(.*, *\)*[''"]'
                         \       . '\|' . '\\$'
                         \       ,
                         \   },
@@ -406,7 +405,9 @@ function! s:toc(setting, ...)
                 let range -= 1
             elseif codeBlockBeginMatch >= 0
                         \ && (codeBlockFlag <= 0 || codeBlockEndMatch < 0 || codeBlockBeginMatch != codeBlockEndMatch)
-                let codeBlockFlag += 1
+                if codeBlockEndMatch < 0 || codeBlockBeginMatch != codeBlockEndMatch
+                    let codeBlockFlag += 1
+                endif
                 call remove(loclist, i)
                 let i -= 1
                 let range -= 1
