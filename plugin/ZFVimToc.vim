@@ -35,6 +35,9 @@ function! s:defaultConfig()
         "
         " exclude:
         "
+        " ;[ \t]*$
+        "     xxx xxx(xx);
+        "
         " ^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]+[ \t]+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]+[ \t]*\((.*, *)*['"]
         "     xxx xxx('xx')
         "     xxx xxx(aa, 'xx')
@@ -56,6 +59,7 @@ function! s:defaultConfig()
                         \       . '|' . '^[ \t]*(return|if|else|elseif|elif|fi|for_?(each)?|while|switch|call|echo|typedef)\>'
                         \       . '|' . '^[ \t]*au(tocmd)?\>'
                         \       . '|' . '^[ \t]*[nicxv](nore)?map\>'
+                        \       . '|' . ';[ \t]*$'
                         \       . '|' . '^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]+[ \t]+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]+[ \t]*\((.*, *)*[''"]'
                         \       . '|' . '\\$'
                         \       ,
@@ -79,6 +83,7 @@ function! s:defaultConfig()
                         \       . '\|' . '^[ \t]*\(return\|if\|else\|elseif\|elif\|fi\|for_\=\(each\)\=\|while\|switch\|call\|echo\|typedef\)\>'
                         \       . '\|' . '^[ \t]*au\(tocmd\)\=\>'
                         \       . '\|' . '^[ \t]*[nicxv]\(nore\)\=map\>'
+                        \       . '|' . ';[ \t]*$'
                         \       . '\|' . '^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]\+[ \t]\+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]\+[ \t]*(\(.*, *\)*[''"]'
                         \       . '\|' . '\\$'
                         \       ,
