@@ -56,7 +56,7 @@ function! s:defaultConfig()
                         \   'codeBlockEnd' : '^[ \t]*\*+\/[ \t]*$|^[ \t]*\/\*.*\*\/[ \t]*$',
                         \   'excludeRegExp' : {
                         \     '*' :     '^[ \t]*(\/\/|#|"|rem(ark)\>)'
-                        \       . '|' . '^[ \t]*(return|if|else|elseif|elif|fi|for_?(each)?|while|switch|call|echo|typedef)\>'
+                        \       . '|' . '^[ \t]*(return|if|else|elseif|elif|fi|for_?(each)?|while|switch|call|echo|typedef|until)\>'
                         \       . '|' . '^[ \t]*au(tocmd)?\>'
                         \       . '|' . '^[ \t]*[nicxv](nore)?map\>'
                         \       . '|' . ';[ \t]*$'
@@ -80,7 +80,7 @@ function! s:defaultConfig()
                         \   'codeBlockEnd' : '^[ \t]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*\/[ \t]*$',
                         \   'excludeRegExp' : {
                         \     '*' :      '^[ \t]*\(\/\/\|#\|"\|rem\(ark\)\>\)'
-                        \       . '\|' . '^[ \t]*\(return\|if\|else\|elseif\|elif\|fi\|for_\=\(each\)\=\|while\|switch\|call\|echo\|typedef\)\>'
+                        \       . '\|' . '^[ \t]*\(return\|if\|else\|elseif\|elif\|fi\|for_\=\(each\)\=\|while\|switch\|call\|echo\|typedef\|until\)\>'
                         \       . '\|' . '^[ \t]*au\(tocmd\)\=\>'
                         \       . '\|' . '^[ \t]*[nicxv]\(nore\)\=map\>'
                         \       . '|' . ';[ \t]*$'
