@@ -45,6 +45,10 @@ function! s:defaultConfig()
         " ^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]+[ \t]+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]+[ \t]*\(([^=]*, *)*['"]
         "     xxx xxx('xx')
         "     xxx xxx(aa, 'xx')
+        "
+        " <<|>>
+        "     os << xxx();
+        "     is >> xxx();
         if s:hasE2v()
             let g:ZFToc_setting['*'] = {
                         \   'titleRegExp' : {
@@ -59,14 +63,15 @@ function! s:defaultConfig()
                         \   'codeBlockBegin' : '^[ \t]*\/\*',
                         \   'codeBlockEnd' : '^[ \t]*\*+\/[ \t]*$|^[ \t]*\/\*.*\*\/[ \t]*$',
                         \   'excludeRegExp' : {
-                        \     '*' :     '^[ \t]*(\/\/|#|"|\\|\.|rem(ark)\>)'
+                        \     '*' :     '\\$'
+                        \       . '|' . '^[ \t]*(\/\/|#|"|\\|\.|rem(ark)\>)'
                         \       . '|' . '^[ \t]*(return|if|else|elseif|elif|fi|for_?(each)?|while|switch|call|echo|typedef|and\>|or\>|until)\>'
                         \       . '|' . '^[ \t]*au(tocmd)?\>'
                         \       . '|' . '^[ \t]*[nicxv](nore)?map\>'
                         \       . '|' . '^[ \t]*([a-zA-Z_][a-zA-Z_0-9<>]+[ \t]*)?[a-zA-Z_][a-zA-Z_0-9<>]+[ \t]*\(.*\)[ \t;]*$'
                         \       . '|' . '^[ \t]*[a-zA-Z_][a-zA-Z_0-9<>]+[ \t]*[a-zA-Z_][a-zA-Z_0-9<>]+[ \t]*=[ \t]*[a-zA-Z_][a-zA-Z_0-9<>]+[ \t]*\(.*\)[ \t;]*$'
                         \       . '|' . '^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]+[ \t]+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]+[ \t]*\(([^=]*, *)*[''"]'
-                        \       . '|' . '\\$'
+                        \       . '|' . '<<|>>'
                         \       ,
                         \   },
                         \ }
@@ -84,14 +89,15 @@ function! s:defaultConfig()
                         \   'codeBlockBegin' : '^[ \t]*\/\*',
                         \   'codeBlockEnd' : '^[ \t]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*\/[ \t]*$',
                         \   'excludeRegExp' : {
-                        \     '*' :      '^[ \t]*\(\/\/\|#\|"\|\\\|\.\|rem\(ark\)\>\)'
+                        \     '*' :      '\\$'
+                        \       . '\|' . '^[ \t]*\(\/\/\|#\|"\|\\\|\.\|rem\(ark\)\>\)'
                         \       . '\|' . '^[ \t]*\(return\|if\|else\|elseif\|elif\|fi\|for_\=\(each\)\=\|while\|switch\|call\|echo\|typedef\|and\>\|or\>\|until\)\>'
                         \       . '\|' . '^[ \t]*au\(tocmd\)\=\>'
                         \       . '\|' . '^[ \t]*[nicxv]\(nore\)\=map\>'
-                        \       . '|' . '^[ \t]*\([a-zA-Z_][a-zA-Z_0-9<>]\+[ \t]*\)\=[a-zA-Z_][a-zA-Z_0-9<>]\+[ \t]*(.*)[ \t;]*$'
-                        \       . '|' . '^[ \t]*[a-zA-Z_][a-zA-Z_0-9<>]\+[ \t]*[a-zA-Z_][a-zA-Z_0-9<>]\+[ \t]*=[ \t]*[a-zA-Z_][a-zA-Z_0-9<>]\+[ \t]*(.*)[ \t;]*$'
+                        \       . '\|' . '^[ \t]*\([a-zA-Z_][a-zA-Z_0-9<>]\+[ \t]*\)\=[a-zA-Z_][a-zA-Z_0-9<>]\+[ \t]*(.*)[ \t;]*$'
+                        \       . '\|' . '^[ \t]*[a-zA-Z_][a-zA-Z_0-9<>]\+[ \t]*[a-zA-Z_][a-zA-Z_0-9<>]\+[ \t]*=[ \t]*[a-zA-Z_][a-zA-Z_0-9<>]\+[ \t]*(.*)[ \t;]*$'
                         \       . '\|' . '^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]\+[ \t]\+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]\+[ \t]*(\([^=]*, *\)*[''"]'
-                        \       . '\|' . '\\$'
+                        \       . '\|' . '<<\|>>'
                         \       ,
                         \   },
                         \ }
