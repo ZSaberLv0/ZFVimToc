@@ -61,7 +61,7 @@ function! s:defaultConfig()
                         \       ,
                         \   },
                         \   'codeBlockBegin' : '^[ \t]*\/\*',
-                        \   'codeBlockEnd' : '^[ \t]*\*+\/[ \t]*$|^[ \t]*\/\*.*\*\/[ \t]*$',
+                        \   'codeBlockEnd' : '^[ \t\*]*\*+\/[ \t]*$|^[ \t]*\/\*.*\*\+\/[ \t]*$',
                         \   'excludeRegExp' : {
                         \     '*' :     '\\$'
                         \       . '|' . '^[ \t]*(\/\/|#|"|\\|\.|rem(ark)\>)'
@@ -87,7 +87,7 @@ function! s:defaultConfig()
                         \       ,
                         \   },
                         \   'codeBlockBegin' : '^[ \t]*\/\*',
-                        \   'codeBlockEnd' : '^[ \t]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*\/[ \t]*$',
+                        \   'codeBlockEnd' : '^[ \t\*]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*+\/[ \t]*$',
                         \   'excludeRegExp' : {
                         \     '*' :      '\\$'
                         \       . '\|' . '^[ \t]*\(\/\/\|#\|"\|\\\|\.\|rem\(ark\)\>\)'
@@ -368,6 +368,10 @@ function! s:toc(setting, ...)
         unlet b:ZFToc_loclist
     endif
 
+    if get(b:, 'ZFToc_DEBUG', 0)
+        let b:ZFToc_DEBUG_log = []
+    endif
+
     if len(get(a:setting, 'codeBlockBegin', '')) > 0
                 \ && len(get(a:setting, 'codeBlockEnd', '')) > 0
         if s:hasE2v()
@@ -387,6 +391,7 @@ function! s:toc(setting, ...)
     noautocmd let &wildignore = ''
     let success = 1
     let pattern = ZFTocE2v(t)
+    if exists('b:ZFToc_DEBUG_log') | call add(b:ZFToc_DEBUG_log, ['pattern', pattern]) | endif
     try
         execute 'silent lvimgrep /' . pattern . '/j %'
     catch /E480/
@@ -405,6 +410,7 @@ function! s:toc(setting, ...)
     endif
 
     let loclist = getloclist(0)
+    if exists('b:ZFToc_DEBUG_log') | call add(b:ZFToc_DEBUG_log, ['loclist before', copy(loclist)]) | endif
     if len(get(a:setting, 'codeBlockBegin', '')) > 0
         let codeBlockFlag = 0
         let codeBlockBegin = ZFTocE2v(get(a:setting, 'codeBlockBegin', ''))
@@ -417,6 +423,7 @@ function! s:toc(setting, ...)
             let codeBlockBeginMatch = match(d['text'], codeBlockBegin)
             let codeBlockEndMatch = match(d['text'], codeBlockEnd)
             if !empty(excludeRegExp) && match(d['text'], excludeRegExp) >= 0
+                if exists('b:ZFToc_DEBUG_log') | call add(b:ZFToc_DEBUG_log, ['remove by exclude', loclist[i]['lnum'], loclist[i]['text']]) | endif
                 call remove(loclist, i)
                 let i -= 1
                 let range -= 1
@@ -425,6 +432,7 @@ function! s:toc(setting, ...)
                 if codeBlockEndMatch < 0 || codeBlockBeginMatch != codeBlockEndMatch
                     let codeBlockFlag += 1
                 endif
+                if exists('b:ZFToc_DEBUG_log') | call add(b:ZFToc_DEBUG_log, ['remove by code block begin', loclist[i]['lnum'], codeBlockFlag, loclist[i]['text']]) | endif
                 call remove(loclist, i)
                 let i -= 1
                 let range -= 1
@@ -433,10 +441,12 @@ function! s:toc(setting, ...)
                 if codeBlockFlag > 0
                     let codeBlockFlag -= 1
                 endif
+                if exists('b:ZFToc_DEBUG_log') | call add(b:ZFToc_DEBUG_log, ['remove by code block end', loclist[i]['lnum'], codeBlockFlag, loclist[i]['text']]) | endif
                 call remove(loclist, i)
                 let i -= 1
                 let range -= 1
             elseif codeBlockFlag > 0
+                if exists('b:ZFToc_DEBUG_log') | call add(b:ZFToc_DEBUG_log, ['remove by code block inside', loclist[i]['lnum'], codeBlockFlag, loclist[i]['text']]) | endif
                 call remove(loclist, i)
                 let i -= 1
                 let range -= 1
@@ -444,6 +454,7 @@ function! s:toc(setting, ...)
             let i += 1
         endwhile
     endif
+    if exists('b:ZFToc_DEBUG_log') | call add(b:ZFToc_DEBUG_log, ['loclist after', copy(loclist)]) | endif
     if empty(loclist)
         redraw!
         echom "[ZFToc] no titles."
