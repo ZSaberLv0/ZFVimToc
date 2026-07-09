@@ -61,7 +61,7 @@ function! s:defaultConfig()
                         \       ,
                         \   },
                         \   'codeBlockBegin' : '^[ \t]*\/\*',
-                        \   'codeBlockEnd' : '^[ \t\*]*\*+\/[ \t]*$|^[ \t]*\/\*.*\*\+\/[ \t]*$',
+                        \   'codeBlockEnd' : '^[ \t\*]*\*+\/[ \t]*$|^[ \t]*\/\*.*\*+\/[ \t]*$',
                         \   'excludeRegExp' : {
                         \     '*' :     '\\$'
                         \       . '|' . '^[ \t]*(\/\/|#|"|\\|\.|rem(ark)\>)'
@@ -87,7 +87,7 @@ function! s:defaultConfig()
                         \       ,
                         \   },
                         \   'codeBlockBegin' : '^[ \t]*\/\*',
-                        \   'codeBlockEnd' : '^[ \t\*]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*+\/[ \t]*$',
+                        \   'codeBlockEnd' : '^[ \t\*]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*\+\/[ \t]*$',
                         \   'excludeRegExp' : {
                         \     '*' :      '\\$'
                         \       . '\|' . '^[ \t]*\(\/\/\|#\|"\|\\\|\.\|rem\(ark\)\>\)'
