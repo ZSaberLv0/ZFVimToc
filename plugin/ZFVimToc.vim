@@ -11,7 +11,7 @@ function! s:defaultConfig()
 
     if get(g:, 'ZFToc_fallback_enable', 1)
                 \ && empty(get(g:ZFToc_setting, '*', {}))
-        " ^[ \t]*(public|protected|private|static|final)*[ \t]*(class|interface|protocol|abstract)\>
+        " ^[ \t]*((public|protected|private|static|final)[ \t]*)*(class|interface|protocol|abstract)\>
         "     class
         "     public static final interface
         "
@@ -52,13 +52,18 @@ function! s:defaultConfig()
         if s:hasE2v()
             let g:ZFToc_setting['*'] = {
                         \   'titleRegExp' : {
-                        \     '*' :     '^[ \t]*(public|protected|private|static|final)*[ \t]*(class|interface|protocol|abstract)\>'
+                        \     '*' :     '^[ \t]*((public|protected|private|static|final)[ \t]*)*(class|interface|protocol|abstract)\>'
                         \       . '|' . '^[ \t]*(public|protected|private|virtual|static|inline|extern|def(ine)?|func(tion)?)[a-zA-Z0-9_ \*<>:#!\?]+\('
                         \       . '|' . '^[a-zA-Z_].*=[ \t]*(fun|(func(tion)?))?[ \t]*\([a-zA-Z0-9_ ,:#!\?]*\)[ \t]*([\-=]>)?[ \t\r\n]*\{'
                         \       . '|' . '^[ \t]*[a-zA-Z0-9_]+[ \t]*\([^!;=\(\)]*\)[ \t\r\n]*\{'
                         \       . '|' . '^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]+[ \t]+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]+[ \t]*\('
                         \       . '|' . '^[ \t]*([a-zA-Z_][a-zA-Z0-9_ \t<>\*&:#]+)?\<operator\>.*\('
                         \       ,
+                        \   },
+                        \   'titleInfoGetter' : '',
+                        \   'titleLevelConv' : {},
+                        \   'titleNameConv' : {
+                        \       '*' : ['\<(public|protected|private|static|virtual|inline) +', '', 'g']
                         \   },
                         \   'codeBlockBegin' : '^[ \t]*\/\*',
                         \   'codeBlockEnd' : '^[ \t\*]*\*+\/[ \t]*$|^[ \t]*\/\*.*\*+\/[ \t]*$',
@@ -71,20 +76,27 @@ function! s:defaultConfig()
                         \       . '|' . '^[ \t]*([a-zA-Z_][a-zA-Z_0-9<>]+[ \t]*)?[a-zA-Z_][a-zA-Z_0-9<>]+[ \t]*\(.*\)[ \t;]*$'
                         \       . '|' . '^[ \t]*[a-zA-Z_][a-zA-Z_0-9<>]+[ \t]*[a-zA-Z_][a-zA-Z_0-9<>]+[ \t]*=[ \t]*[a-zA-Z_][a-zA-Z_0-9<>]+[ \t]*\(.*\)[ \t;]*$'
                         \       . '|' . '^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]+[ \t]+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]+[ \t]*\(([^=]*, *)*[''"]'
+                        \       . '|' . '^[ \t]*public void run\(\)'
                         \       . '|' . '<<|>>'
+                        \       . '|' . '^(    ){3,}'
                         \       ,
                         \   },
                         \ }
         else
             let g:ZFToc_setting['*'] = {
                         \   'titleRegExp' : {
-                        \     '*' :      '^[ \t]*\(public\|protected\|private\|static\|final\)*[ \t]*\(class\|interface\|protocol\|abstract\)\>'
+                        \     '*' :      '^[ \t]*\(\(public\|protected\|private\|static\|final\)[ \t]*\)*\(class\|interface\|protocol\|abstract\)\>'
                         \       . '\|' . '^[ \t]*\(public\|protected\|private\|virtual\|static\|inline\|extern\|def\(ine\)\=\|func\(tion\)\=\)[a-zA-Z0-9_ \*<>:#!?]\+('
                         \       . '\|' . '^[a-zA-Z_].*=[ \t]*\(func\(tion\)\=\)\=[ \t]*([a-zA-Z0-9_ ,:#!?]*)[ \t]*\([\-=]>\)\=[ \t\r\n]*{'
                         \       . '\|' . '^[ \t]*[a-zA-Z0-9_]\+[ \t]*([^!;=()]*)[ \t\r\n]*{'
                         \       . '\|' . '^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]\+[ \t]\+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]\+[ \t]*('
                         \       . '\|' . '^[ \t]*\([a-zA-Z_][a-zA-Z0-9_ \t<>\*&:#]\+\)\=\<operator\>.*('
                         \       ,
+                        \   },
+                        \   'titleInfoGetter' : '',
+                        \   'titleLevelConv' : {},
+                        \   'titleNameConv' : {
+                        \       '*' : ['\<\(public\|protected\|private\|static\|virtual\|inline\) \+', '', 'g']
                         \   },
                         \   'codeBlockBegin' : '^[ \t]*\/\*',
                         \   'codeBlockEnd' : '^[ \t\*]*\*\+\/[ \t]*$\|^[ \t]*\/\*.*\*\+\/[ \t]*$',
@@ -97,7 +109,9 @@ function! s:defaultConfig()
                         \       . '\|' . '^[ \t]*\([a-zA-Z_][a-zA-Z_0-9<>]\+[ \t]*\)\=[a-zA-Z_][a-zA-Z_0-9<>]\+[ \t]*(.*)[ \t;]*$'
                         \       . '\|' . '^[ \t]*[a-zA-Z_][a-zA-Z_0-9<>]\+[ \t]*[a-zA-Z_][a-zA-Z_0-9<>]\+[ \t]*=[ \t]*[a-zA-Z_][a-zA-Z_0-9<>]\+[ \t]*(.*)[ \t;]*$'
                         \       . '\|' . '^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]\+[ \t]\+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]\+[ \t]*(\([^=]*, *\)*[''"]'
+                        \       . '\|' . '^[ \t]*public void run()'
                         \       . '\|' . '<<\|>>'
+                        \       . '\|' . '^\(    \)\{3,}'
                         \       ,
                         \   },
                         \ }
@@ -145,10 +159,12 @@ function! ZFTocConfigByPattern(ft, titleToken, codeBlockBegin, codeBlockEnd)
                     \         '*' : '^[ \t]*' . a:titleToken . '+ .*$',
                     \     },
                     \     'titleInfoGetter' : '',
-                    \     'titleLevelRegExpMatch' : '^[ \t]*(' . a:titleToken . '+).*$',
-                    \     'titleLevelRegExpReplace' : '\1',
-                    \     'titleNameRegExpMatch' : '^[ \t]*' . a:titleToken . '+[ \t]*(<.*?>)?[ \t]*(.*?)[ \t]*(<.*?>)?[ \t]*$',
-                    \     'titleNameRegExpReplace' : '\2',
+                    \     'titleLevelConv' : {
+                    \         '*' : ['^[ \t]*(' . a:titleToken . '+).*$', '\1'],
+                    \     },
+                    \     'titleNameConv' : {
+                    \         '*' : ['^[ \t]*' . a:titleToken . '+[ \t]*(<.*?>)?[ \t]*(.*?)[ \t]*(<.*?>)?[ \t]*$', '\2'],
+                    \     },
                     \     'codeBlockBegin' : a:codeBlockBegin,
                     \     'codeBlockEnd' : a:codeBlockEnd,
                     \ }
@@ -158,10 +174,12 @@ function! ZFTocConfigByPattern(ft, titleToken, codeBlockBegin, codeBlockEnd)
                     \         '*' : '^[ \t]*' . a:titleToken . '\+ .*$',
                     \     },
                     \     'titleInfoGetter' : '',
-                    \     'titleLevelRegExpMatch' : '^[ \t]*\(' . a:titleToken . '\+\).*$',
-                    \     'titleLevelRegExpReplace' : '\1',
-                    \     'titleNameRegExpMatch' : '^[ \t]*' . a:titleToken . '\+[ \t]*\(<.\{-}>\)\=[ \t]*\(.\{-}\)[ \t]*\(<.\{-}>\)\=[ \t]*$',
-                    \     'titleNameRegExpReplace' : '\2',
+                    \     'titleLevelConv' : {
+                    \         '*' : ['^[ \t]*\(' . a:titleToken . '\+\).*$', '\1'],
+                    \     },
+                    \     'titleNameConv' : {
+                    \         '*' : ['^[ \t]*' . a:titleToken . '\+[ \t]*\(<.\{-}>\)\=[ \t]*\(.\{-}\)[ \t]*\(<.\{-}>\)\=[ \t]*$', '\2'],
+                    \     },
                     \     'codeBlockBegin' : a:codeBlockBegin,
                     \     'codeBlockEnd' : a:codeBlockEnd,
                     \ }
@@ -482,10 +500,8 @@ function! s:toc(setting, ...)
     endif
     setlocal modifiable
     let Fn_titleInfoGetter = get(a:setting, 'titleInfoGetter', '')
-    let titleLevelRegExpMatch = ZFTocE2v(get(a:setting, 'titleLevelRegExpMatch', ''), {'fixE872' : 0})
-    let titleLevelRegExpReplace = ZFTocE2v(get(a:setting, 'titleLevelRegExpReplace', ''), {'fixE872' : 0, 'smartcase' : 0})
-    let titleNameRegExpMatch = ZFTocE2v(get(a:setting, 'titleNameRegExpMatch', ''), {'fixE872' : 0})
-    let titleNameRegExpReplace = ZFTocE2v(get(a:setting, 'titleNameRegExpReplace', ''), {'fixE872' : 0, 'smartcase' : 0})
+    let titleLevelConv = get(a:setting, 'titleLevelConv', {})
+    let titleNameConv = get(a:setting, 'titleNameConv', {})
     for i in range(len(loclist))
         let d = loclist[i]
         if !empty(Fn_titleInfoGetter)
@@ -495,16 +511,28 @@ function! s:toc(setting, ...)
             endif
             let level = get(info, 'level', 0)
         else
-            if len(titleLevelRegExpMatch) > 0
-                let level = len(substitute(d['text'], titleLevelRegExpMatch, titleLevelRegExpReplace, ''))
+            if !empty(titleLevelConv)
+                let t = d['text']
+                for pattern in values(titleLevelConv)
+                    let patternFrom = ZFTocE2v(pattern[0], {'fixE872' : 0})
+                    let patternTo = ZFTocE2v(pattern[1], {'fixE872' : 0, 'smartcase' : 0})
+                    let t = substitute(t, patternFrom, patternTo, get(pattern, 2, ''))
+                endfor
+                let level = len(t)
                 if level > 0
                     let level -= 1
                 endif
             else
                 let level = 0
             endif
-            if len(titleNameRegExpMatch) > 0
-                let d['text'] = substitute(d['text'], titleNameRegExpMatch, titleNameRegExpReplace, '')
+            if !empty(titleNameConv)
+                let t = d['text']
+                for pattern in values(titleNameConv)
+                    let patternFrom = ZFTocE2v(pattern[0], {'fixE872' : 0})
+                    let patternTo = ZFTocE2v(pattern[1], {'fixE872' : 0, 'smartcase' : 0})
+                    let t = substitute(t, patternFrom, patternTo, get(pattern, 2, ''))
+                endfor
+                let d['text'] = t
             endif
         endif
         call setline(i + 1, repeat('    ', level) . d['text'])

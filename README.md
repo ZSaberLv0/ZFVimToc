@@ -52,10 +52,12 @@ let g:ZFToc_setting['markdown'] = {
             \         '*' : '^[ \t]*[#]+.*$',
             \     },
             \     'titleInfoGetter' : '',
-            \     'titleLevelRegExpMatch' : '^[ \t]*([#]+).*$',
-            \     'titleLevelRegExpReplace' : '\1',
-            \     'titleNameRegExpMatch' : '^[ \t]*[#]+[ \t]*(<.*?>)?[ \t]*(.*?)[ \t]*(<.*?>)?[ \t]*$',
-            \     'titleNameRegExpReplace' : '\2',
+            \     'titleLevelConv' : {
+            \         '*' : ['^[ \t]*([#]+).*$', '\1'],
+            \     },
+            \     'titleNameConv' : {
+            \         '*' : ['^[ \t]*[#]+[ \t]*(<.*?>)?[ \t]*(.*?)[ \t]*(<.*?>)?[ \t]*$', '\2'],
+            \     },
             \     'codeBlockBegin' : '^[ \t]*```.*$',
             \     'codeBlockEnd' : '^[ \t]*```[ \t]*$',
             \     'excludeRegExp' : {},
@@ -99,9 +101,9 @@ patterns:
 
     or, you may use these patterns to convert the title:
 
-    * `titleLevelRegExpMatch` and `titleLevelRegExpReplace` : optional, regexp to check title level,
+    * `titleLevelConv` : optional, a group of regexp to check title level,
         result should be any string, whose (length - 1) indicates the title's level
-    * `titleNameRegExpMatch` and `titleNameRegExpReplace` : optional,
+    * `titleNameConv` : optional,
         regexp to convert title name to human readable one,
         empty to use the original matched line
 
