@@ -35,7 +35,7 @@ function! s:defaultConfig()
         "
         " exclude:
         "
-        " ^[ \t]*([a-zA-Z_][a-zA-Z_0-9<>]+[ \t]*)?[a-zA-Z_][a-zA-Z_0-9<>]+[ \t]*\(.*\)[ \t;]*$
+        " ^[ \t]*([a-zA-Z_][a-zA-Z_0-9<>]+[ \t]*)?[a-zA-Z_][a-zA-Z_0-9<>]+[ \t]*\(.*\)[ \t]*;[ \t]*$
         "     xxx(xx);
         "     xxx xxx(xx);
         "
@@ -73,7 +73,7 @@ function! s:defaultConfig()
                         \       . '|' . '^[ \t]*(return|if|else|elseif|elif|fi|for_?(each)?|while|switch|call|echo|typedef|and\>|or\>|until)\>'
                         \       . '|' . '^[ \t]*au(tocmd)?\>'
                         \       . '|' . '^[ \t]*[nicxv](nore)?map\>'
-                        \       . '|' . '^[ \t]*([a-zA-Z_][a-zA-Z_0-9<>]+[ \t]*)?[a-zA-Z_][a-zA-Z_0-9<>]+[ \t]*\(.*\)[ \t;]*$'
+                        \       . '|' . '^[ \t]*([a-zA-Z_][a-zA-Z_0-9<>]+[ \t]*)?[a-zA-Z_][a-zA-Z_0-9<>]+[ \t]*\(.*\)[ \t]*;[ \t]*$'
                         \       . '|' . '^[ \t]*[a-zA-Z_][a-zA-Z_0-9<>]+[ \t]*[a-zA-Z_][a-zA-Z_0-9<>]+[ \t]*=[ \t]*[a-zA-Z_][a-zA-Z_0-9<>]+[ \t]*\(.*\)[ \t;]*$'
                         \       . '|' . '^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]+[ \t]+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]+[ \t]*\(([^=]*, *)*[''"]'
                         \       . '|' . '^[ \t]*public void run\(\)'
@@ -106,7 +106,7 @@ function! s:defaultConfig()
                         \       . '\|' . '^[ \t]*\(return\|if\|else\|elseif\|elif\|fi\|for_\=\(each\)\=\|while\|switch\|call\|echo\|typedef\|and\>\|or\>\|until\)\>'
                         \       . '\|' . '^[ \t]*au\(tocmd\)\=\>'
                         \       . '\|' . '^[ \t]*[nicxv]\(nore\)\=map\>'
-                        \       . '\|' . '^[ \t]*\([a-zA-Z_][a-zA-Z_0-9<>]\+[ \t]*\)\=[a-zA-Z_][a-zA-Z_0-9<>]\+[ \t]*(.*)[ \t;]*$'
+                        \       . '\|' . '^[ \t]*([a-zA-Z_][a-zA-Z_0-9<>]+[ \t]*)?[a-zA-Z_][a-zA-Z_0-9<>]+[ \t]*\(.*\)[ \t]*;[ \t]*$'
                         \       . '\|' . '^[ \t]*[a-zA-Z_][a-zA-Z_0-9<>]\+[ \t]*[a-zA-Z_][a-zA-Z_0-9<>]\+[ \t]*=[ \t]*[a-zA-Z_][a-zA-Z_0-9<>]\+[ \t]*(.*)[ \t;]*$'
                         \       . '\|' . '^[ \t]*[a-zA-Z_][a-zA-Z0-9_ <>\*&]\+[ \t]\+[<>\*&]*[a-zA-Z_][a-zA-Z0-9_:#]\+[ \t]*(\([^=]*, *\)*[''"]'
                         \       . '\|' . '^[ \t]*public void run()'
